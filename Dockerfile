@@ -11,7 +11,11 @@ WORKDIR /app
 
 # ── 1. Compilar C++ (capa cacheada: solo se recompila si vision/ cambia) ──
 COPY vision/ vision/
-RUN g++ -O2 -std=c++17 -o procesar vision/*.cpp
+RUN g++ -O2 -std=c++17 -o procesar \
+    vision/main.cpp vision/lector_bmp.cpp vision/histograma.cpp \
+    vision/color_dominante.cpp vision/escala_grises.cpp vision/rgb_hsv.cpp \
+    vision/features.cpp vision/segmentacion.cpp vision/perceptron.cpp \
+    vision/cuerpo.cpp vision/colorimetria.cpp vision/detector_prendas.cpp
 
 # ── 2. Dependencias Python ──
 COPY requirements.txt .
