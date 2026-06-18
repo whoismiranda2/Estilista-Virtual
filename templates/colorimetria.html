@@ -1,0 +1,1963 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Colorimetría — Estilista Virtual</title>
+<link rel="stylesheet" href="/static/style.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap');
+
+/* ── Layout ── */
+.col-header { display:flex; align-items:center; justify-content:space-between; padding:16px 28px; }
+.col-header button {
+  background:rgba(255,255,255,.12); color:white;
+  border:1px solid rgba(255,255,255,.25); border-radius:30px;
+  padding:8px 18px; font-size:.82rem; font-weight:500;
+  cursor:pointer; transition:.2s; font-family:'DM Sans',sans-serif;
+}
+.col-header button:hover { background:rgba(255,255,255,.22); }
+.col-header h1 { font-family:'Playfair Display',serif; font-size:1.45rem; font-weight:700; color:#ffffff; }
+.instrucciones { padding:0 28px 18px; font-size:1.05rem; color:#7A6E68; line-height:1.8; }
+.upload-zona { padding:0 28px 28px; display:flex; gap:20px; flex-wrap:wrap; align-items:flex-start; }
+
+/* ── Tips Modal & Widget ── */
+.tips-overlay {
+  position:fixed; inset:0; z-index:200;
+  background:rgba(28,20,16,.52);
+  display:flex; align-items:center; justify-content:center;
+  backdrop-filter:blur(5px);
+  animation:tipsOvIn .22s ease;
+}
+.tips-overlay.saliendo { animation:tipsOvOut .22s ease forwards; }
+@keyframes tipsOvIn  { from{opacity:0} to{opacity:1} }
+@keyframes tipsOvOut { from{opacity:1} to{opacity:0} }
+.tips-modal {
+  background:white; border-radius:22px; padding:32px 32px 24px;
+  max-width:480px; width:92%; position:relative;
+  box-shadow:0 24px 64px rgba(109,46,70,.28);
+  animation:tipsModalIn .32s cubic-bezier(.34,1.45,.64,1);
+}
+@keyframes tipsModalIn {
+  from{transform:scale(.82) translateY(24px);opacity:0}
+  to  {transform:scale(1)   translateY(0);   opacity:1}
+}
+.tips-close {
+  position:absolute; top:13px; right:14px;
+  width:30px; height:30px; border-radius:50%; border:none;
+  background:#F5F0EC; color:#7A6E68; font-size:1.15rem; line-height:1;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  transition:background .15s;
+}
+.tips-close:hover { background:#EAE4DE; }
+.tips-modal-header { text-align:center; margin-bottom:20px; }
+.tips-modal-icon   { font-size:2.4rem; margin-bottom:6px; }
+.tips-modal-titulo {
+  font-family:'Playfair Display',serif; font-size:1.22rem; font-weight:700;
+  color:#3D1F2E; margin-bottom:3px;
+}
+.tips-modal-sub { font-size:.92rem; color:#9A8A84; line-height:1.5; }
+.tips-slides-wrap { overflow:hidden; height:160px; margin-bottom:14px; }
+.tips-slides { display:flex; height:100%; transition:transform .4s cubic-bezier(.4,0,.2,1); }
+.tips-slide {
+  flex-shrink:0; width:100%; display:flex; flex-direction:column;
+  align-items:center; text-align:center; gap:8px; padding:0 6px;
+}
+.tips-slide-icon {
+  width:52px; height:52px; border-radius:14px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; font-size:1.6rem;
+}
+.tips-slide-titulo { font-weight:600; font-size:1rem; color:#3D1F2E; }
+.tips-slide-texto  { font-size:.92rem; color:#7A6E68; line-height:1.6; }
+.tips-dots { display:flex; justify-content:center; gap:6px; margin-bottom:18px; }
+.tips-dot  { width:7px; height:7px; border-radius:50%; background:#EAE4DE; cursor:pointer; transition:.2s; }
+.tips-dot.activo { background:#6D2E46; transform:scale(1.3); }
+.tips-btn-ok {
+  width:100%; padding:11px; border:none; border-radius:30px;
+  background:linear-gradient(135deg,#6D2E46,#A0455F); color:white;
+  font-size:.91rem; font-family:'DM Sans',sans-serif; font-weight:500;
+  cursor:pointer; transition:opacity .2s,transform .15s;
+}
+.tips-btn-ok:hover { opacity:.88; transform:translateY(-1px); }
+.tips-widget {
+  position:fixed; top:78px; right:18px; z-index:100;
+  display:none; align-items:center; gap:5px;
+  background:white; border:1px solid #EAE4DE; border-radius:30px;
+  padding:7px 13px; cursor:pointer;
+  box-shadow:0 4px 18px rgba(109,46,70,.18);
+  font-family:'DM Sans',sans-serif; font-size:.80rem;
+  color:#6D2E46; font-weight:500; letter-spacing:.02em;
+  transition:box-shadow .15s,transform .15s;
+  animation:widgetSlideIn .35s cubic-bezier(.34,1.45,.64,1);
+}
+.tips-widget:hover { box-shadow:0 6px 22px rgba(109,46,70,.24); transform:translateY(-1px); }
+@keyframes widgetSlideIn {
+  from{transform:translateX(70px);opacity:0}
+  to  {transform:translateX(0);   opacity:1}
+}
+
+/* ── Upload card ── */
+.upload-card {
+  background:white; border-radius:14px; border:1.5px dashed #D4A0B0;
+  padding:22px; flex:0 0 240px; display:flex; flex-direction:column;
+  align-items:center; gap:12px; text-align:center;
+}
+.upload-card input[type="file"] { width:100%; font-size:.8rem; }
+.upload-card img {
+  width:220px; height:260px; object-fit:cover; object-position:top;
+  border-radius:10px; background:#FAF7F5; display:none;
+  border:1px solid #EAE4DE; max-width:none; margin:0;
+}
+.btn-analizar {
+  background:linear-gradient(135deg,#6D2E46,#A0455F); color:white; border:none;
+  padding:11px 24px; border-radius:30px; cursor:pointer; font-size:.88rem;
+  font-family:'DM Sans',sans-serif; font-weight:500; width:100%;
+  transition:opacity .2s,transform .15s;
+}
+.btn-analizar:hover { opacity:.88; transform:translateY(-1px); }
+
+/* ── Cargando ── */
+.cargando { display:none; text-align:center; padding:40px; color:#9A8A84; font-size:.9rem; }
+
+/* ── Resultado completo ── */
+.resultado-completo {
+  display:none;
+  padding:0 28px 40px;
+  flex-direction:column;
+  gap:32px;
+}
+
+/* Cabecera del resultado */
+.res-header {
+  display:flex; gap:28px; flex-wrap:wrap;
+  background:white; border-radius:16px; padding:28px;
+  border:1px solid #EAE4DE; box-shadow:0 2px 16px rgba(109,46,70,.08);
+}
+.res-foto-wrap {
+  flex:0 0 160px;
+}
+.res-foto {
+  width:160px; height:200px; object-fit:cover; object-position:top;
+  border-radius:12px; border:1px solid #EAE4DE; max-width:none; margin:0;
+}
+.res-info { flex:1; min-width:220px; }
+.res-estacion {
+  font-family:'Playfair Display',serif; font-size:1.55rem; font-weight:700;
+  color:#6D2E46; margin-bottom:2px; line-height:1.2;
+}
+.res-estacion-en {
+  font-family:'DM Sans',sans-serif; font-size:.85rem; color:#9A8A84;
+  margin-bottom:12px; font-style:italic;
+}
+.res-desc {
+  font-size:.87rem; color:#4A3840; line-height:1.7;
+  margin-bottom:16px; max-width:480px;
+}
+.atributos { display:flex; flex-direction:column; gap:6px; }
+.atributo {
+  display:flex; align-items:center; gap:8px;
+  font-size:.83rem; color:#5A4850;
+}
+.atributo-dot {
+  width:8px; height:8px; border-radius:50%;
+  background:#6D2E46; flex-shrink:0;
+}
+.atributo strong { color:#3D1F2E; }
+
+/* Sección genérica */
+.seccion {
+  background:white; border-radius:16px; padding:24px 28px;
+  border:1px solid #EAE4DE; box-shadow:0 2px 12px rgba(109,46,70,.06);
+}
+.seccion-titulo {
+  font-family:'Playfair Display',serif; font-size:1rem; font-weight:700;
+  color:#3D1F2E; margin-bottom:18px; text-align:center;
+  text-transform:uppercase; letter-spacing:.1em;
+}
+
+/* Grupos de paleta */
+.grupo-paleta { margin-bottom:16px; }
+.grupo-label {
+  font-size:.72rem; font-weight:600; color:#9A8A84; text-transform:uppercase;
+  letter-spacing:.1em; margin-bottom:8px; font-family:'DM Sans',sans-serif;
+}
+.chips-row { display:flex; gap:8px; flex-wrap:wrap; }
+.chip {
+  width:42px; height:42px; border-radius:50%;
+  border:2px solid rgba(0,0,0,.08); cursor:default;
+  position:relative; transition:transform .15s;
+  flex-shrink:0;
+}
+.chip:hover { transform:scale(1.18); z-index:2; }
+.chip-label {
+  position:absolute; bottom:-20px; left:50%; transform:translateX(-50%);
+  font-size:9px; color:#888; white-space:nowrap; display:none;
+  font-family:'DM Sans',sans-serif;
+}
+.chip:hover .chip-label { display:block; }
+
+/* Colores a evitar */
+.chip.evitar { opacity:.7; }
+.chip.evitar::after {
+  content:"✕"; position:absolute; inset:0; display:flex;
+  align-items:center; justify-content:center;
+  font-size:14px; color:rgba(255,255,255,.85); font-weight:700;
+}
+
+/* Grid dos columnas */
+.dos-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+@media(max-width:600px){ .dos-col { grid-template-columns:1fr; } }
+
+/* Accesorios */
+.metal-card {
+  background:#FAF7F5; border-radius:12px; padding:16px;
+  border:1px solid #EAE4DE;
+}
+.metal-nombre {
+  font-family:'Playfair Display',serif; font-size:.95rem; font-weight:700;
+  color:#3D1F2E; margin-bottom:2px;
+}
+.metal-sub { font-size:.75rem; color:#9A8A84; margin-bottom:10px; font-style:italic; }
+.metal-lista { list-style:none; padding:0; }
+.metal-lista li {
+  font-size:.8rem; color:#5A4850; padding:3px 0;
+  display:flex; align-items:center; gap:6px;
+}
+.metal-lista li::before { content:"◇"; color:#B5885C; font-size:.7rem; }
+
+.acc-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-top:4px; }
+.acc-item { background:#FAF7F5; border-radius:10px; padding:14px; border:1px solid #EAE4DE; }
+.acc-titulo {
+  font-family:'DM Sans',sans-serif; font-size:.8rem; font-weight:600;
+  color:#3D1F2E; text-transform:uppercase; letter-spacing:.06em; margin-bottom:6px;
+}
+.acc-texto { font-size:.78rem; color:#6A5860; line-height:1.6; }
+
+/* Consejos de uso */
+.consejos-grid {
+  display:grid; grid-template-columns:repeat(4,1fr); gap:16px;
+  margin-top:4px;
+}
+@media(max-width:700px){ .consejos-grid { grid-template-columns:repeat(2,1fr); } }
+
+.consejo-card {
+  background:#FAF7F5; border-radius:12px; padding:16px 14px;
+  border:1px solid #EAE4DE; text-align:center;
+  display:flex; flex-direction:column; align-items:center; gap:10px;
+}
+.consejo-icono { font-size:1.6rem; line-height:1; }
+.consejo-texto {
+  font-size:.79rem; color:#5A4850; line-height:1.6;
+  font-family:'DM Sans',sans-serif;
+}
+
+/* Mensaje clave */
+.mensaje-clave {
+  background:linear-gradient(135deg,#3D1F2E,#6D2E46);
+  border-radius:16px; padding:24px 28px; color:white; text-align:center;
+}
+.mensaje-clave p {
+  font-family:'Playfair Display',serif; font-size:1rem; font-style:italic;
+  line-height:1.7; color:#F5E8ED; max-width:600px; margin:0 auto;
+}
+.mensaje-clave strong { color:white; }
+
+.panel-unificado {
+  background:white; border-radius:16px; padding:24px 28px;
+  border:1px solid #EAE4DE; box-shadow:0 2px 12px rgba(109,46,70,.06);
+}
+.panel-unificado-titulo {
+  font-family:'Playfair Display',serif; font-size:1rem; font-weight:700;
+  color:#3D1F2E; margin-bottom:18px; text-align:center;
+  text-transform:uppercase; letter-spacing:.1em;
+}
+.panel-inner { display:flex; gap:28px; flex-wrap:wrap; align-items:flex-start; }
+.panel-foto-col { display:flex; flex-direction:column; align-items:center; gap:8px; flex-shrink:0; }
+.panel-foto-wrap {
+  position:relative; width:165px; height:230px;
+  border-radius:12px; overflow:hidden;
+  border:1px solid #EAE4DE;
+  cursor:ns-resize; user-select:none;
+}
+.panel-foto-wrap img {
+  width:100%; height:100%; object-fit:cover; object-position:top;
+  display:block; max-width:none; margin:0; border:none; border-radius:0;
+}
+.panel-foto-placeholder {
+  width:100%; height:100%;
+  background:linear-gradient(160deg,#e8d5c4,#c9a98a,#a07850);
+  display:flex; align-items:center; justify-content:center;
+}
+.panel-tela {
+  position:absolute; left:0; right:0; height:28%; top:55%;
+  cursor:ns-resize;
+  background-image:
+    repeating-linear-gradient(0deg,rgba(255,255,255,.08) 0px,rgba(255,255,255,.08) 1px,transparent 1px,transparent 4px),
+    repeating-linear-gradient(90deg,rgba(255,255,255,.06) 0px,rgba(255,255,255,.06) 1px,transparent 1px,transparent 4px);
+  box-shadow:0 -4px 14px rgba(0,0,0,.22), 0 4px 10px rgba(0,0,0,.14);
+}
+.panel-drag-hint {
+  font-size:11px; color:#9A8A84; font-style:italic;
+  text-align:center; max-width:165px; line-height:1.5;
+}
+.panel-derecha { flex:1; min-width:240px; }
+.panel-info-activo { margin-bottom:18px; min-height:88px; }
+.panel-color-muestra {
+  width:44px; height:44px; border-radius:8px;
+  border:1px solid #EAE4DE; flex-shrink:0;
+}
+.panel-color-hex { font-size:13px; font-weight:600; color:#3D1F2E; }
+.panel-color-nom { font-size:11px; color:#9A8A84; }
+.panel-badge { display:inline-flex; align-items:center; gap:4px; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:500; margin:8px 0 6px; }
+.panel-badge.ok  { background:#E8F7F0; color:#1D7A4E; }
+.panel-badge.no  { background:#FCEAEA; color:#8B2020; }
+.panel-badge.neu { background:#FFF8E6; color:#7A5A00; }
+.panel-color-desc { font-size:.82rem; color:#5A4850; line-height:1.65; }
+.grupo-lbl-panel {
+  font-size:10px; font-weight:600; color:#9A8A84;
+  text-transform:uppercase; letter-spacing:.08em;
+  margin:12px 0 6px;
+}
+.grupo-lbl-panel:first-child { margin-top:0; }
+.chips-panel { display:flex; gap:7px; flex-wrap:wrap; }
+.chip-panel {
+  width:28px; height:28px; border-radius:50%;
+  border:2.5px solid transparent; cursor:pointer; flex-shrink:0;
+  transition:transform .12s, border-color .12s, box-shadow .12s;
+}
+.chip-panel:hover { transform:scale(1.18); box-shadow:0 2px 6px rgba(0,0,0,.15); }
+.chip-panel.activo { border-color:#6D2E46; transform:scale(1.22); }
+
+.selector-seccion { background:white; border-radius:16px; padding:24px 28px; border:1px solid #EAE4DE; box-shadow:0 2px 12px rgba(109,46,70,.06); }
+.selector-seccion-titulo { font-family:'Playfair Display',serif; font-size:1rem; font-weight:700; color:#3D1F2E; margin-bottom:6px; text-align:center; text-transform:uppercase; letter-spacing:.1em; }
+.selector-subtitulo { font-size:.83rem; color:#9A8A84; text-align:center; margin-bottom:18px; }
+.selector-layout { display:flex; gap:24px; flex-wrap:wrap; align-items:flex-start; }
+.picker-wrap { display:flex; flex-direction:column; align-items:center; gap:8px; }
+.picker-preview { width:110px; height:110px; border-radius:14px; border:1px solid #EAE4DE; display:flex; align-items:flex-end; justify-content:center; padding-bottom:8px; transition:background .15s; }
+.picker-hex-lbl { font-size:11px; color:rgba(255,255,255,.85); font-family:monospace; }
+.picker-input-color { width:110px; height:38px; border-radius:8px; border:1px solid #EAE4DE; cursor:pointer; padding:2px; }
+.btn-verificar { width:110px; padding:9px; background:linear-gradient(135deg,#6D2E46,#A0455F); color:white; border:none; border-radius:30px; font-size:.83rem; font-family:'DM Sans',sans-serif; cursor:pointer; transition:opacity .2s; }
+.btn-verificar:hover { opacity:.88; }
+.selector-resultado { flex:1; min-width:180px; }
+.sel-badge { display:inline-flex; align-items:center; gap:5px; padding:6px 14px; border-radius:30px; font-size:13px; font-weight:500; margin-bottom:8px; }
+.sel-badge.ok  { background:#E8F7F0; color:#1D7A4E; }
+.sel-badge.neu { background:#FFF8E6; color:#7A5A00; }
+.sel-badge.no  { background:#FCEAEA; color:#8B2020; }
+.sel-desc-txt { font-size:.83rem; color:#5A4850; line-height:1.65; margin-bottom:14px; }
+.paleta-personal-titulo { font-size:.78rem; font-weight:600; color:#3D1F2E; text-transform:uppercase; letter-spacing:.07em; margin-bottom:8px; }
+.paleta-personal-chips { display:flex; gap:6px; flex-wrap:wrap; min-height:36px; }
+.pp-chip { width:36px; height:36px; border-radius:50%; border:1px solid #EAE4DE; position:relative; cursor:default; transition:transform .15s; }
+.pp-chip:hover { transform:scale(1.1); }
+.pp-chip.confirmado::after { content:"✓"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:13px; color:rgba(255,255,255,.9); font-weight:600; }
+.paleta-personal-nota { font-size:11px; color:#9A8A84; margin-top:6px; font-style:italic; }
+
+.panel-apagan {
+  background:white; border-radius:16px; padding:24px 28px;
+  border:1px solid #EAE4DE; box-shadow:0 2px 12px rgba(109,46,70,.06);
+}
+.panel-apagan-titulo {
+  font-family:'Playfair Display',serif; font-size:1rem; font-weight:700;
+  color:#3D1F2E; margin-bottom:18px; text-align:center;
+  text-transform:uppercase; letter-spacing:.1em;
+}
+.panel-apagan-inner { display:flex; gap:28px; flex-wrap:wrap; align-items:flex-start; }
+.panel-apagan-foto-col { display:flex; flex-direction:column; align-items:center; gap:8px; flex-shrink:0; }
+.panel-apagan-wrap {
+  position:relative; width:165px; height:230px;
+  border-radius:12px; overflow:hidden; border:1px solid #EAE4DE;
+  cursor:ns-resize; user-select:none;
+}
+.panel-apagan-wrap img {
+  width:100%; height:100%; object-fit:cover; object-position:top;
+  display:block; max-width:none; margin:0; border:none; border-radius:0;
+}
+.panel-apagan-placeholder {
+  width:100%; height:100%;
+  background:linear-gradient(160deg,#e8d5c4,#c9a98a,#a07850);
+  display:flex; align-items:center; justify-content:center;
+}
+.panel-apagan-tela {
+  position:absolute; left:0; right:0; height:28%; top:55%;
+  cursor:ns-resize;
+  background-image:
+    repeating-linear-gradient(0deg,rgba(255,255,255,.08) 0px,rgba(255,255,255,.08) 1px,transparent 1px,transparent 4px),
+    repeating-linear-gradient(90deg,rgba(255,255,255,.06) 0px,rgba(255,255,255,.06) 1px,transparent 1px,transparent 4px);
+  box-shadow:0 -4px 14px rgba(0,0,0,.22), 0 4px 10px rgba(0,0,0,.14);
+}
+.panel-apagan-hint {
+  font-size:11px; color:#9A8A84; font-style:italic;
+  text-align:center; max-width:165px; line-height:1.5;
+}
+.panel-apagan-derecha { flex:1; min-width:240px; }
+.panel-apagan-info { margin-bottom:18px; min-height:88px; }
+.chips-apagan { display:flex; gap:7px; flex-wrap:wrap; }
+.chip-apagan {
+  width:28px; height:28px; border-radius:50%;
+  border:2.5px solid transparent; cursor:pointer; flex-shrink:0;
+  transition:transform .12s, border-color .12s, box-shadow .12s;
+  position:relative;
+}
+.chip-apagan::after {
+  content:"✕"; position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; color:rgba(255,255,255,.75); font-weight:700;
+}
+.chip-apagan:hover { transform:scale(1.18); box-shadow:0 2px 6px rgba(0,0,0,.15); }
+.chip-apagan.activo { border-color:#C0392B; transform:scale(1.22); }
+
+/* Marco de color alrededor de la foto */
+.res-foto-wrap {
+  position:relative; display:inline-block;
+}
+.res-foto {
+  width:160px; height:200px; object-fit:cover; object-position:top;
+  border-radius:12px; border:none; display:block;
+  max-width:none; margin:0;
+}
+.res-foto-marco {
+  position:absolute; inset:0; border-radius:12px;
+  border:8px solid transparent;
+  box-shadow:0 0 0 0 transparent;
+  pointer-events:none;
+  transition:border-color .4s, box-shadow .4s;
+}
+.res-foto-etiqueta {
+  position:absolute; bottom:-12px; left:50%;
+  transform:translateX(-50%);
+  font-size:10px; color:white; padding:3px 12px;
+  border-radius:10px; white-space:nowrap; font-weight:600;
+  transition:background .4s; font-family:'DM Sans',sans-serif;
+}
+.res-foto-swatches {
+  display:flex; gap:6px; flex-wrap:wrap;
+  justify-content:center; margin-top:20px; max-width:170px;
+}
+.res-swatch {
+  width:26px; height:26px; border-radius:50%; cursor:pointer;
+  border:2px solid transparent; transition:.12s; flex-shrink:0;
+}
+.res-swatch:hover { transform:scale(1.2); }
+.res-swatch.activo {
+  border-color:#3D1F2E; transform:scale(1.18);
+  box-shadow:0 0 0 2px white, 0 0 0 4px #3D1F2E;
+}
+
+/* Explicación detallada */
+.exp-bloque {
+  background:#FAF7F5; border-radius:12px; padding:16px;
+  border:1px solid #EAE4DE; margin-bottom:14px;
+}
+.exp-item {
+  display:flex; gap:12px; margin-bottom:12px; align-items:flex-start;
+}
+.exp-item:last-child { margin-bottom:0; }
+.exp-icono {
+  width:34px; height:34px; border-radius:8px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; font-size:17px;
+}
+.exp-texto { flex:1; }
+.exp-label {
+  font-size:10px; font-weight:600; color:#9A8A84;
+  text-transform:uppercase; letter-spacing:.07em; margin-bottom:2px;
+  font-family:'DM Sans',sans-serif;
+}
+.exp-valor { font-size:.85rem; font-weight:600; color:#3D1F2E; }
+.exp-why { font-size:.78rem; color:#7A6E68; margin-top:3px; line-height:1.55; }
+.exp-barra-wrap {
+  margin-top:5px; background:#EAE4DE;
+  border-radius:4px; height:6px;
+}
+.exp-barra-fill { height:6px; border-radius:4px; }
+.exp-barra-labels {
+  display:flex; justify-content:space-between;
+  font-size:9px; color:#9A8A84; margin-top:2px;
+}
+.exp-conclusion {
+  background:white; border-radius:8px; padding:12px;
+  font-size:.8rem; color:#5A4850; line-height:1.65;
+  border-left:3px solid #6D2E46; margin-top:4px;
+}
+
+/* Carrusel de prendas */
+.carrusel-seccion {
+  background:white; border-radius:16px; padding:20px 24px;
+  border:1px solid #EAE4DE; box-shadow:0 2px 12px rgba(109,46,70,.06);
+  display:none;
+}
+.carrusel-titulo {
+  font-family:'Playfair Display',serif; font-size:.95rem; font-weight:700;
+  color:#3D1F2E; margin-bottom:4px;
+}
+.carrusel-sub {
+  font-size:.78rem; color:#9A8A84; margin-bottom:14px;
+}
+.carrusel-track-wrap { position:relative; }
+.carrusel-track {
+  display:flex; gap:10px; overflow-x:auto; padding-bottom:8px;
+  scroll-behavior:smooth;
+}
+.carrusel-track::-webkit-scrollbar { height:4px; }
+.carrusel-track::-webkit-scrollbar-thumb {
+  background:#EAE4DE; border-radius:2px;
+}
+.car-card {
+  flex-shrink:0; width:100px; border-radius:10px;
+  background:#FAF7F5; border:2px solid #EAE4DE;
+  overflow:hidden; transition:.15s; cursor:default; position:relative;
+}
+.car-card.match { border-color:#1D9E75; }
+.car-card.neutro { border-color:#B5885C; opacity:.8; }
+.car-img {
+  width:100px; height:100px; object-fit:contain;
+  background:#FAF7F5; display:block; max-width:none; margin:0;
+}
+.car-info { padding:5px 8px 8px; }
+.car-cat { font-size:.72rem; color:#7A6E68; font-family:'DM Sans',sans-serif; }
+.car-badge {
+  position:absolute; top:5px; right:5px; font-size:9px;
+  font-weight:700; padding:2px 7px; border-radius:8px; color:white;
+}
+.car-badge.match  { background:#1D9E75; }
+.car-badge.neutro { background:#B5885C; }
+.carrusel-nav {
+  display:flex; gap:8px; justify-content:flex-end; margin-top:10px;
+}
+.car-nav-btn {
+  width:30px; height:30px; border-radius:50%; margin:0;
+  border:1px solid #EAE4DE; background:white; cursor:pointer;
+  font-size:12px; transition:.15s; padding:0;
+  display:flex; align-items:center; justify-content:center;
+}
+.car-nav-btn:hover { background:#FAF7F5; border-color:#6D2E46; }
+.carrusel-vacio {
+  font-size:.82rem; color:#C0B4AE; font-style:italic; padding:8px 0;
+}
+
+/* Panel combinado paleta + apagan con tabs */
+.panel-combinado {
+  background:white; border-radius:16px; padding:24px 28px;
+  border:1px solid #EAE4DE; box-shadow:0 2px 12px rgba(109,46,70,.06);
+}
+.tab-mini {
+  display:flex; gap:3px; background:#F5F0EC; border-radius:24px;
+  padding:4px; margin-bottom:22px; width:fit-content;
+}
+.tab-mini-btn {
+  background:none; border:none; border-radius:20px;
+  padding:8px 20px; font-size:.86rem; font-weight:500;
+  color:#7A6E68; cursor:pointer; transition:.15s; margin:0;
+  font-family:'DM Sans',sans-serif; letter-spacing:.02em;
+}
+.tab-mini-btn.activo {
+  background:white; color:#3D1F2E;
+  box-shadow:0 1px 8px rgba(109,46,70,.14);
+}
+.tab-mini-btn:hover:not(.activo) { color:#3D1F2E; }
+
+/* Wrapper foto en panel combinado */
+.pfoto-outer {
+  position:relative; display:inline-block; flex-shrink:0;
+  margin-bottom:20px;
+}
+.pfoto-wrap {
+  width:165px; height:230px; border-radius:12px;
+  overflow:hidden; position:relative; border:1px solid #EAE4DE;
+}
+.pfoto-wrap > .panel-foto-placeholder,
+.pfoto-wrap > .panel-apagan-placeholder {
+  position:absolute; inset:0;
+}
+.pfoto-wrap > img {
+  position:absolute; inset:0; width:100%; height:100%;
+  object-fit:cover; object-position:top;
+  display:none; max-width:none; margin:0;
+  border:none; border-radius:0;
+}
+.pfoto-outer > .res-foto-marco {
+  position:absolute; inset:0; border-radius:12px;
+  border:8px solid transparent;
+  box-shadow:0 0 0 0 transparent;
+  pointer-events:none;
+  transition:border-color .4s, box-shadow .4s;
+}
+.pfoto-outer > .res-foto-etiqueta {
+  position:absolute; bottom:-12px; left:50%;
+  transform:translateX(-50%);
+  font-size:10px; color:white; padding:3px 12px;
+  border-radius:10px; white-space:nowrap; font-weight:600;
+  transition:background .4s; font-family:'DM Sans',sans-serif;
+  z-index:2;
+}
+
+</style>
+</head>
+
+<body>
+<header>
+  <div class="col-header">
+    <h1>Colorimetría</h1>
+    <button onclick="window.location.href='/'">← Volver</button>
+  </div>
+</header>
+
+<p class="instrucciones">
+  Sube una fotografía de frente con buena iluminación natural, sobre fondo blanco.
+  El sistema analizará el tono de tu piel y determinará tu paleta de color personalizada.
+</p>
+
+<div class="upload-zona">
+  <div class="upload-card">
+    <div><i data-lucide="palette" width="40" height="40" stroke-width="1.5"></i></div>
+    <div style="font-size:.82rem;color:#888;line-height:1.6">
+      ✓ Foto de frente, buena luz<br>
+      ✓ Fondo blanco o claro<br>
+      ✓ Rostro visible y sin filtros
+    </div>
+    <input type="file" id="imgColor" accept="image/*" onchange="previsualizarColor()">
+    <img id="prevColor" alt="Vista previa">
+    <button class="btn-analizar" onclick="analizarColor()">Analizar colorimetría</button>
+  </div>
+</div>
+
+<div class="cargando" id="cargando">
+  <div style="margin-bottom:8px"><i data-lucide="sparkles" width="32" height="32" stroke-width="1.5"></i></div>
+  Analizando tono de piel...
+</div>
+
+<!-- Resultado completo -->
+<div class="resultado-completo" id="resultadoCompleto">
+
+  <!-- 1. Cabecera -->
+  <div class="res-header">
+    <div class="res-foto-wrap" style="display:flex;flex-direction:column;align-items:center;gap:0">
+      <div style="position:relative;display:inline-block">
+        <img id="resFoto" class="res-foto" alt="Tu foto">
+        <div class="res-foto-marco" id="resFotoMarco"></div>
+        <div class="res-foto-etiqueta" id="resFotoEtiqueta"></div>
+      </div>
+      <div class="res-foto-swatches" id="resFotoSwatches"></div>
+    </div>
+    <div class="res-info">
+      <div class="res-estacion"    id="resEstacion"></div>
+      <div class="res-estacion-en" id="resEstacionEn"></div>
+      <div class="res-desc"        id="resDesc"></div>
+
+      <!-- Explicación detallada -->
+      <div class="exp-bloque" id="resExplicacion"></div>
+    </div>
+  </div>
+
+  <!-- PANEL COMBINADO: paleta + apagan con tabs -->
+  <div class="panel-combinado" id="panelCombinado" style="display:none">
+
+    <!-- Mini tabs -->
+    <div class="tab-mini">
+      <button class="tab-mini-btn activo" id="tabBtn0" onclick="cambiarTab(0)">✓ Mi paleta</button>
+      <button class="tab-mini-btn"        id="tabBtn1" onclick="cambiarTab(1)">✗ Colores que apagan</button>
+    </div>
+
+    <!-- Tab 0: Paleta favorable -->
+    <div class="tab-panel" id="tabPanel0">
+      <div class="panel-inner">
+
+        <div class="panel-foto-col">
+          <div class="pfoto-outer">
+            <div class="pfoto-wrap">
+              <div class="panel-foto-placeholder" id="panelPlaceholder">
+                <i data-lucide="user" width="56" height="56" stroke-width="1" style="color:rgba(255,255,255,.3)"></i>
+              </div>
+              <img id="panelFotoImg" alt="Tu foto">
+            </div>
+            <div class="res-foto-marco" id="panelMarco"></div>
+            <div class="res-foto-etiqueta" id="panelEtiq"></div>
+          </div>
+          <div class="res-foto-swatches" id="panelSwatches"></div>
+          <div class="panel-drag-hint">Clic en un color · el fondo cambia</div>
+        </div>
+
+        <div class="panel-derecha">
+          <div class="panel-info-activo" id="panelInfoActivo">
+            <div style="font-size:.82rem;color:#9A8A84;font-style:italic">
+              Selecciona un color de la paleta para verlo en tu foto.
+            </div>
+          </div>
+          <div id="panelPaletaGrupos"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Tab 1: Colores que apagan -->
+    <div class="tab-panel" id="tabPanel1" style="display:none">
+      <div class="panel-inner">
+
+        <div class="panel-foto-col">
+          <div class="pfoto-outer">
+            <div class="pfoto-wrap">
+              <div class="panel-apagan-placeholder" id="apaganPlaceholder">
+                <i data-lucide="user" width="56" height="56" stroke-width="1" style="color:rgba(255,255,255,.3)"></i>
+              </div>
+              <img id="apaganFotoImg" alt="Tu foto">
+            </div>
+            <div class="res-foto-marco" id="apaganMarco"></div>
+            <div class="res-foto-etiqueta" id="apaganEtiq"></div>
+          </div>
+          <div class="res-foto-swatches" id="apaganSwatches"></div>
+          <div class="panel-drag-hint">Clic en un color · ve por qué te apaga</div>
+        </div>
+
+        <div class="panel-apagan-derecha">
+          <div class="panel-apagan-info" id="apaganInfoActivo">
+            <div style="font-size:.82rem;color:#9A8A84;font-style:italic">
+              Selecciona un color para ver por qué no armoniza con tu coloración.
+            </div>
+          </div>
+          <div style="font-size:10px;font-weight:600;color:#9A8A84;text-transform:uppercase;letter-spacing:.08em;margin:14px 0 8px">
+            Colores a evitar
+          </div>
+          <div class="chips-apagan" id="chipsApagan"></div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SECCIÓN SELECTOR: elige cualquier color -->
+  <div class="selector-seccion" id="secSelector" style="display:none">
+    <div class="selector-seccion-titulo">¿Este color te queda?</div>
+    <div class="selector-subtitulo">
+      Elige cualquier color y te decimos si va con tu estación.
+      Los que te favorecen se guardan en tu paleta personal.
+    </div>
+    <div class="selector-layout">
+      <div class="picker-wrap">
+        <div class="picker-preview" id="pickerPreview">
+          <span class="picker-hex-lbl" id="pickerHexLbl">#6D2E46</span>
+        </div>
+        <input type="color" class="picker-input-color" id="colorLibre" value="#6D2E46">
+        <button class="btn-verificar" onclick="verificarColorLibre()">Verificar</button>
+      </div>
+      <div class="selector-resultado">
+        <div id="selResultado" style="display:none;margin-bottom:16px">
+          <div class="sel-badge" id="selBadge"></div>
+          <div class="sel-desc-txt" id="selDesc"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Accesorios -->
+  <div class="seccion">
+    <div class="seccion-titulo">Accesorios que te favorecen</div>
+
+    <!-- Metales -->
+    <div class="grupo-label" style="margin-bottom:12px">Metales</div>
+    <div class="dos-col" id="resMetales" style="margin-bottom:20px"></div>
+
+    <!-- Otros accesorios -->
+    <div class="grupo-label" style="margin-bottom:12px">Complementos</div>
+    <div class="acc-grid" id="resAccesorios"></div>
+  </div>
+
+  <!-- 5. Compatibilidad de prenda -->
+  <div class="seccion" id="secCompat" style="display:none">
+    <div class="seccion-titulo">¿Este color te queda?</div>
+    <div style="font-size:.83rem;color:#7A6E68;margin-bottom:16px;text-align:center">
+      Sube la foto de una prenda y te diremos si va con tu estación.
+    </div>
+    <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start">
+      <div class="upload-card" style="flex:0 0 180px;padding:16px">
+        <input type="file" id="imgPrenda" accept="image/*" onchange="previsualizarPrenda()">
+        <img id="prevPrenda" alt="Prenda" style="width:150px;height:150px;object-fit:contain">
+        <button class="btn-analizar" onclick="verificarCompatibilidad()">Verificar</button>
+      </div>
+      <div id="compatResultado" style="display:none;flex:1;min-width:200px;
+           background:#FAF7F5;border-radius:12px;padding:18px;border:1px solid #EAE4DE">
+        <div id="veredictoTexto" style="font-size:1.2rem;font-weight:700;margin-bottom:6px"></div>
+        <div id="veredictoSub" style="font-size:.83rem;color:#7A6E68;margin-bottom:12px"></div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <div id="colorDetectado" style="width:40px;height:40px;border-radius:8px;border:1px solid #EAE4DE;flex-shrink:0"></div>
+          <div id="colorDetectadoInfo" style="font-size:.78rem;color:#888"></div>
+        </div>
+        <div style="font-size:.75rem;color:#aaa;margin-bottom:6px">Colores más cercanos de tu paleta:</div>
+        <div class="chips-row" id="paletaCercanos" style="gap:6px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARRUSEL DE PRENDAS COMPATIBLES -->
+  <div class="carrusel-seccion" id="secCarrusel">
+    <div class="carrusel-titulo"><i data-lucide="shirt" width="16" height="16"></i> Prendas de tu armario que combinan contigo</div>
+    <div class="carrusel-sub">
+      Ordenadas por compatibilidad con tu estación — verde = muy compatible
+    </div>
+    <div class="carrusel-track-wrap">
+      <div class="carrusel-track" id="carruselTrack"></div>
+    </div>
+    <div class="carrusel-nav">
+      <button class="car-nav-btn" onclick="scrollCarrusel(-1)">◀</button>
+      <button class="car-nav-btn" onclick="scrollCarrusel(1)">▶</button>
+    </div>
+  </div>
+
+  <!-- 6. Cómo usar tu paleta -->
+  <div class="seccion">
+    <div class="seccion-titulo">Cómo usar tu paleta</div>
+    <div class="consejos-grid" id="resConsejos"></div>
+  </div>
+
+  <!-- 7. Mensaje clave -->
+  <div class="mensaje-clave">
+    <p id="resMensaje"></p>
+  </div>
+
+</div>
+
+<canvas id="canvasOculto" style="display:none"></canvas>
+
+<!-- Tips Modal -->
+<div class="tips-overlay" id="tipsOverlay">
+  <div class="tips-modal">
+    <button class="tips-close" onclick="cerrarTips()">×</button>
+    <div class="tips-modal-header">
+      <div class="tips-modal-icon"><i data-lucide="palette" width="38" height="38" stroke-width="1.5"></i></div>
+      <div class="tips-modal-titulo">Tips para tu foto</div>
+      <div class="tips-modal-sub">Sigue estos consejos para un análisis de color preciso</div>
+    </div>
+    <div class="tips-slides-wrap">
+      <div class="tips-slides" id="tipsSlides"></div>
+    </div>
+    <div class="tips-dots" id="tipsDots"></div>
+    <button class="tips-btn-ok" onclick="cerrarTips()">Entendido ✓</button>
+  </div>
+</div>
+
+<!-- Widget colapsado -->
+<div class="tips-widget" id="tipsWidget" onclick="abrirTips()">
+  <i data-lucide="palette" width="16" height="16"></i>
+  <span>Tips para la foto</span>
+</div>
+
+<script>
+// ── Datos completos por estación ──────────────────────────────────────────
+const DATA = {
+  primavera: {
+    titulo:    "Primavera Luminosa",
+    tituloEn:  "LIGHT SPRING",
+    desc:      "Tu coloración es fresca, luminosa y cálida. Tu belleza irradia calidez dorada y ligereza. Los colores brillantes y cálidos en tonos claros realzan tu piel y hacen que tus rasgos brillen naturalmente.",
+    atributos: [
+      { label:"Subtono",      valor:"Cálido - dorado" },
+      { label:"Contraste",    valor:"Bajo a medio" },
+      { label:"Intensidad",   valor:"Clara y luminosa" },
+      { label:"Temperatura",  valor:"Cálida" },
+    ],
+    paleta: [
+      { grupo:"Neutros ideales",   cols:["#FAEBD7","#F5DEB3","#FFFACD","#FFF8DC","#FFDAB9"] },
+      { grupo:"Colores cálidos",   cols:["#FFA07A","#FF7F50","#F08080","#E9967A","#FA8072"] },
+      { grupo:"Verdes y amarillos",cols:["#98FB98","#ADFF2F","#FFD700","#F0E68C","#BDB76B"] },
+      { grupo:"Azules y turquesa", cols:["#87CEEB","#87CEFA","#B0E0E6","#AFEEEE","#ADD8E6"] },
+    ],
+    evitar: [
+      { hex:"#000000", label:"Negro" },{ hex:"#808080", label:"Gris frío" },
+      { hex:"#4B0082", label:"Morado oscuro" },{ hex:"#800000", label:"Granate frío" },
+      { hex:"#2F4F4F", label:"Verde pizarra" },
+    ],
+    metales: [
+      { nom:"Oro amarillo", sub:"Tu metal estrella", lista:["Clásico","Champagne","Vintage","Cepillado mate"] },
+      { nom:"Oro rosa",     sub:"Muy favorecedor",   lista:["Suave","Femenino","Romántico"] },
+    ],
+    accesorios: [
+      { titulo:"Gafas",     texto:"Dorado, beige, camel, verde oliva claro, colores cálidos." },
+      { titulo:"Bolsos",    texto:"Camel, beige cálido, nude, terracota suave, marrón claro." },
+      { titulo:"Pañuelos",  texto:"Estampados cálidos, coral, melocotón, amarillo suave." },
+      { titulo:"Cinturones",texto:"Camel, nude, marrón dorado, beige." },
+    ],
+    consejos: [
+      { ico:`<i data-lucide="sun" width="26" height="26" stroke-width="1.5"></i>`, txt:"Elige siempre tonos cálidos y luminosos. Evita los fríos y muy profundos cerca de tu rostro." },
+      { ico:`<i data-lucide="shopping-bag" width="26" height="26" stroke-width="1.5"></i>`, txt:"Los neutros cálidos (camel, beige, ivory) son tus mejores aliados para un look elegante." },
+      { ico:`<i data-lucide="sparkles" width="26" height="26" stroke-width="1.5"></i>`, txt:"Usa los colores más vívidos en accesorios o prendas principales para dar luz a tu rostro." },
+      { ico:`<i data-lucide="flower-2" width="26" height="26" stroke-width="1.5"></i>`, txt:"Tu paleta te ayudará a verte más fresca, luminosa y radiante en cualquier ocasión." },
+    ],
+    mensaje: "Tu belleza está en tu <strong>calidez natural y luminosa</strong>. Los tonos que abrazan tu subtono cálido te harán ver más fresca, saludable y radiante en cualquier ocasión.",
+  },
+
+  verano: {
+    titulo:    "Verano Suave",
+    tituloEn:  "SOFT SUMMER",
+    desc:      "Tu coloración es suave, apagada y fría con un subtono rosado. Tu belleza es delicada y refinada. Los tonos empolvados y fríos armonizan perfectamente con tu piel, creando una armonía natural y sofisticada.",
+    atributos: [
+      { label:"Subtono",     valor:"Frío - rosado" },
+      { label:"Contraste",   valor:"Bajo a medio" },
+      { label:"Intensidad",  valor:"Suave y apagada" },
+      { label:"Temperatura", valor:"Fría" },
+    ],
+    paleta: [
+      { grupo:"Neutros ideales",   cols:["#E8E8E8","#D3D3D3","#C0C0C0","#F5F5F5","#DCDCDC"] },
+      { grupo:"Rosas y lavandas",  cols:["#FFB6C1","#DDA0DD","#EE82EE","#DA70D6","#D8BFD8"] },
+      { grupo:"Azules empolvados", cols:["#B0C4DE","#AFEEEE","#ADD8E6","#87CEEB","#E6E6FA"] },
+      { grupo:"Verdes suaves",     cols:["#90EE90","#98FB98","#8FBC8F","#B2D8B2","#C1FFC1"] },
+    ],
+    evitar: [
+      { hex:"#FF4500", label:"Naranja vivo" },{ hex:"#FF8C00", label:"Naranja" },
+      { hex:"#8B4513", label:"Marrón tierra" },{ hex:"#FFD700", label:"Amarillo dorado" },
+      { hex:"#006400", label:"Verde intenso" },
+    ],
+    metales: [
+      { nom:"Plata",     sub:"Tu metal ideal",     lista:["Plata mate","Plata envejecida","Blanco oro","Platino"] },
+      { nom:"Oro blanco",sub:"Muy favorecedor",    lista:["Minimalista","Moderno","Combinado con plata"] },
+    ],
+    accesorios: [
+      { titulo:"Gafas",     texto:"Plata, gris, malva, rosa palo, azul hielo." },
+      { titulo:"Bolsos",    texto:"Gris, blanco roto, rosa empolvado, malva, azul perla." },
+      { titulo:"Pañuelos",  texto:"Estampados fríos, lavanda, azul suave, rosa pálido." },
+      { titulo:"Cinturones",texto:"Gris, plata, blanco, malva suave." },
+    ],
+    consejos: [
+      { ico:`<i data-lucide="moon" width="26" height="26" stroke-width="1.5"></i>`, txt:"Elige siempre tonos fríos y empolvados. Evita los cálidos intensos cerca de tu rostro." },
+      { ico:`<i data-lucide="shopping-bag" width="26" height="26" stroke-width="1.5"></i>`, txt:"Los neutros fríos (gris perla, blanco roto, malva suave) son tus mejores aliados." },
+      { ico:`<i data-lucide="gem" width="26" height="26" stroke-width="1.5"></i>`, txt:"Usa los colores más intensos de tu paleta en accesorios para un toque sofisticado." },
+      { ico:`<i data-lucide="leaf" width="26" height="26" stroke-width="1.5"></i>`, txt:"Tu paleta te dará una apariencia delicada, refinada y naturalmente elegante." },
+    ],
+    mensaje: "Tu elegancia natural reside en tu <strong>suavidad y refinamiento</strong>. Los tonos empolvados y fríos realzan tu belleza delicada sin sobrecargarla.",
+  },
+
+  otono: {
+    titulo:    "Otoño Suave",
+    tituloEn:  "SOFT AUTUMN",
+    desc:      "Colorimetría cálida, suave y ligeramente profunda. Tu armonía natural se realiza con tonos cálidos, apagados y tierra. Tu coloración es rica, terrosa y sofisticada, irradiando calidez natural.",
+    atributos: [
+      { label:"Subtono",      valor:"Cálido - neutro (oliva suave)" },
+      { label:"Contraste",    valor:"Medio a medio-alto" },
+      { label:"Intensidad",   valor:"Suave a media" },
+      { label:"Profundidad",  valor:"Media" },
+      { label:"Temperatura",  valor:"Cálida" },
+    ],
+    paleta: [
+      { grupo:"Neutros ideales",    cols:["#F5DEB3","#DEB887","#D2B48C","#BC8F5F","#A0522D"] },
+      { grupo:"Colores cálidos",    cols:["#8B0000","#A0522D","#CD853F","#D2691E","#B8860B"] },
+      { grupo:"Verdes",             cols:["#6B8E23","#808000","#556B2F","#8FBC8F","#2E8B57"] },
+      { grupo:"Azules y turquesa",  cols:["#008B8B","#20B2AA","#5F9EA0","#4682B4","#191970"] },
+      { grupo:"Tonos tierra y metálicos", cols:["#8B4513","#A0522D","#DAA520","#B8860B","#CD853F"] },
+    ],
+    evitar: [
+      { hex:"#000080", label:"Azul marino frío" },{ hex:"#FF69B4", label:"Rosa chicle" },
+      { hex:"#E6E6FA", label:"Lavanda" },{ hex:"#00FFFF", label:"Cyan" },
+      { hex:"#FFFFFF", label:"Blanco óptico" },
+    ],
+    metales: [
+      { nom:"Oro amarillo", sub:"Tu metal estrella",  lista:["Clásico","Champagne","Vintage","Cepillado mate"] },
+      { nom:"Oro rosa",     sub:"Muy favorecedor",    lista:["Suave","Femenino","Romántico"] },
+      { nom:"Plata",        sub:"Úsala con moderación",lista:["Plata cálida mate","Plata envejecida","Evitar plata fría/brillante"] },
+    ],
+    accesorios: [
+      { titulo:"Gafas",      texto:"Carey, miel, marrón, champagne gold, verde oliva." },
+      { titulo:"Bolsos",     texto:"Camel, chocolate, marrón, verde oliva, beige cálido." },
+      { titulo:"Pañuelos",   texto:"Tonos tierra, verdes cálidos, mostaza, terracota." },
+      { titulo:"Cinturones", texto:"Marrón, camel, chocolate, dorado." },
+    ],
+    consejos: [
+      { ico:`<i data-lucide="sun" width="26" height="26" stroke-width="1.5"></i>`, txt:"Elige siempre tonos cálidos, suaves o profundos. Evita los fríos y muy intensos cerca de tu rostro." },
+      { ico:`<i data-lucide="shopping-bag" width="26" height="26" stroke-width="1.5"></i>`, txt:"Los neutros cálidos (beige, camel, chocolate) son tus mejores aliados para un look elegante." },
+      { ico:`<i data-lucide="sparkles" width="26" height="26" stroke-width="1.5"></i>`, txt:"Usa los colores más intensos en accesorios o prendas principales para dar luz a tu rostro." },
+      { ico:`<i data-lucide="leaf" width="26" height="26" stroke-width="1.5"></i>`, txt:"Tu paleta te ayudará a verte más fresca, saludable y sofisticada en cualquier ocasión." },
+    ],
+    mensaje: "Tu belleza está en tu <strong>calidez natural</strong>. Los tonos que abrazan tu subtono cálido te harán ver más luminosa, joven y armoniosa.",
+  },
+
+  invierno: {
+    titulo:    "Invierno Profundo",
+    tituloEn:  "DEEP WINTER",
+    desc:      "Tu coloración es de alto contraste, profunda y fría. Tu belleza es dramática y sofisticada. Los colores intensos y puros te favorecen enormemente, creando un impacto visual poderoso y elegante.",
+    atributos: [
+      { label:"Subtono",     valor:"Frío - neutro a rosado" },
+      { label:"Contraste",   valor:"Alto" },
+      { label:"Intensidad",  valor:"Vívida y profunda" },
+      { label:"Temperatura", valor:"Fría" },
+    ],
+    paleta: [
+      { grupo:"Neutros ideales",  cols:["#FFFFFF","#F5F5F5","#808080","#2F2F2F","#000000"] },
+      { grupo:"Rojos y fucsia",   cols:["#DC143C","#FF1493","#C71585","#8B0000","#B22222"] },
+      { grupo:"Azules profundos", cols:["#00008B","#191970","#000080","#4169E1","#0000CD"] },
+      { grupo:"Verdes intensos",  cols:["#006400","#008000","#228B22","#2E8B57","#00CED1"] },
+      { grupo:"Morados y esmeraldas", cols:["#4B0082","#800080","#8B008B","#9400D3","#50C878"] },
+    ],
+    evitar: [
+      { hex:"#F5DEB3", label:"Beige cálido" },{ hex:"#FFDAB9", label:"Melocotón" },
+      { hex:"#DAA520", label:"Dorado tierra" },{ hex:"#D2691E", label:"Terracota" },
+      { hex:"#F0E68C", label:"Amarillo suave" },
+    ],
+    metales: [
+      { nom:"Plata",      sub:"Tu metal ideal",    lista:["Plata brillante","Platino","Acero inoxidable","Plata pulida"] },
+      { nom:"Oro blanco", sub:"Muy favorecedor",   lista:["Moderno","Minimalista","Alto contraste"] },
+    ],
+    accesorios: [
+      { titulo:"Gafas",      texto:"Negro, plata, gris oscuro, azul marino, morado." },
+      { titulo:"Bolsos",     texto:"Negro, blanco, rojo, azul marino, gris antracita." },
+      { titulo:"Pañuelos",   texto:"Estampados de alto contraste, negro, blanco, rojo vivo." },
+      { titulo:"Cinturones", texto:"Negro, plata, blanco, azul marino." },
+    ],
+    consejos: [
+      { ico:`<i data-lucide="snowflake" width="26" height="26" stroke-width="1.5"></i>`, txt:"Elige siempre tonos fríos y de alto contraste. Evita los cálidos y apagados cerca de tu rostro." },
+      { ico:`<i data-lucide="shopping-bag" width="26" height="26" stroke-width="1.5"></i>`, txt:"Los neutros de alto contraste (negro, blanco puro, gris) son tus mejores aliados." },
+      { ico:`<i data-lucide="gem" width="26" height="26" stroke-width="1.5"></i>`, txt:"Usa los colores más puros e intensos en prendas principales para crear un impacto visual." },
+      { ico:`<i data-lucide="zap" width="26" height="26" stroke-width="1.5"></i>`, txt:"Tu paleta te ayudará a verte poderosa, sofisticada y memorable en cualquier ocasión." },
+    ],
+    mensaje: "Tu poder está en el <strong>contraste y la intensidad</strong>. Los colores puros y vívidos potencian tu belleza natural y crean una presencia magnética e impactante.",
+  },
+
+  indefinido: {
+    titulo:    "No determinado",
+    tituloEn:  "",
+    desc:      "No se detectaron suficientes píxeles de piel. Usa una foto con buena iluminación, fondo claro y rostro visible.",
+    atributos: [],
+    paleta:    [],
+    evitar:    [],
+    metales:   [],
+    accesorios:[],
+    consejos: [],
+    mensaje:   "Intenta con una foto con mejor iluminación y fondo más claro.",
+  },
+};
+
+// ── Tips Modal ────────────────────────────────────────────────────────────
+const TIPS = [
+  { ico:`<i data-lucide="sun" width="26" height="26" stroke-width="1.5"></i>`, bg:"#FFF8E6", titulo:"Luz natural",
+    texto:"Fotografíate cerca de una ventana con luz del día, sin flash." },
+  { ico:`<i data-lucide="circle" width="26" height="26" stroke-width="1.5"></i>`, bg:"#F5F5F5", titulo:"Fondo blanco o claro",
+    texto:"Un fondo neutro ayuda a analizar correctamente el tono de tu piel." },
+  { ico:`<i data-lucide="x-circle" width="26" height="26" stroke-width="1.5"></i>`, bg:"#FFF0F0", titulo:"Sin maquillaje pesado",
+    texto:"Rostro natural o con maquillaje muy ligero para ver tu color real." },
+  { ico:`<i data-lucide="camera" width="26" height="26" stroke-width="1.5"></i>`, bg:"#F0F5FF", titulo:"Rostro de frente y centrado",
+    texto:"La cara visible, centrada y sin oclusiones en la foto." },
+  { ico:`<i data-lucide="palette" width="26" height="26" stroke-width="1.5"></i>`, bg:"#F5F0FF", titulo:"Foto sin filtros ni edición",
+    texto:"Imagen original, sin filtros, para capturar el color real de tu piel." },
+];
+
+let _tIdx = 0, _tTimer = null;
+
+(function iniciarTips() {
+  const slides = document.getElementById("tipsSlides");
+  const dots   = document.getElementById("tipsDots");
+  slides.innerHTML = TIPS.map(t => `
+    <div class="tips-slide">
+      <div class="tips-slide-icon" style="background:${t.bg}">${t.ico}</div>
+      <div class="tips-slide-titulo">${t.titulo}</div>
+      <div class="tips-slide-texto">${t.texto}</div>
+    </div>`).join("");
+  dots.innerHTML = TIPS.map((_,i) =>
+    `<div class="tips-dot${i===0?' activo':''}" onclick="irTip(${i})"></div>`
+  ).join("");
+  _tTimer = setInterval(avanzarTip, 2600);
+})();
+
+function irTip(i) {
+  _tIdx = i;
+  document.getElementById("tipsSlides").style.transform = `translateX(-${i*100}%)`;
+  document.querySelectorAll(".tips-dot").forEach((d,j) => d.classList.toggle("activo", j===i));
+  clearInterval(_tTimer);
+  _tTimer = setInterval(avanzarTip, 2600);
+}
+function avanzarTip() { irTip((_tIdx+1) % TIPS.length); }
+
+function cerrarTips() {
+  const ov = document.getElementById("tipsOverlay");
+  const wg = document.getElementById("tipsWidget");
+  ov.classList.add("saliendo");
+  setTimeout(() => { ov.style.display="none"; wg.style.display="flex"; }, 230);
+  clearInterval(_tTimer);
+}
+function abrirTips() {
+  const ov = document.getElementById("tipsOverlay");
+  const wg = document.getElementById("tipsWidget");
+  ov.style.display = "flex";
+  ov.classList.remove("saliendo");
+  wg.style.display = "none";
+  irTip(0);
+}
+
+// ── Utilidades de color ───────────────────────────────────────────────────
+let estacionActual = null;
+let _origFotoSrc   = null;   // blob URL de la foto original, sin modificar
+
+// Flood-fill BFS desde los bordes: solo reemplaza el fondo conectado,
+// nunca toca píxeles interiores aunque sean parecidos al fondo.
+function _aplicarFondo(hexColor, imgElId) {
+  if (!_origFotoSrc) return;
+  const target = document.getElementById(imgElId);
+  if (!target) return;
+
+  const tmp = new Image();
+  tmp.onload = function() {
+    // Limitar resolución para rendimiento (700 px máx.)
+    const MAX = 700;
+    const nw  = tmp.naturalWidth  || 300;
+    const nh  = tmp.naturalHeight || 400;
+    const sc  = Math.min(1, MAX / Math.max(nw, nh));
+    const W   = Math.round(nw * sc);
+    const H   = Math.round(nh * sc);
+
+    const cv  = document.createElement("canvas");
+    cv.width  = W; cv.height = H;
+    const ctx = cv.getContext("2d");
+    ctx.drawImage(tmp, 0, 0, W, H);
+    const iD  = ctx.getImageData(0, 0, W, H);
+    const px  = iD.data;
+
+    // ── 1. Color de fondo estimado desde las 4 esquinas ──────────────────
+    const S = Math.min(14, Math.floor(W * 0.07));
+    let bR=0, bG=0, bB=0, bN=0;
+    for (let y=0; y<S; y++) for (let x=0; x<S; x++) {
+      [[y,x],[y,W-1-x],[H-1-y,x],[H-1-y,W-1-x]].forEach(([cy,cx]) => {
+        const i=(cy*W+cx)*4; bR+=px[i]; bG+=px[i+1]; bB+=px[i+2]; bN++;
+      });
+    }
+    bR/=bN; bG/=bN; bB/=bN;
+
+    // ── 2. Umbral conservador basado en varianza de esquinas ──────────────
+    let vs=0;
+    for (let y=0; y<S; y++) for (let x=0; x<S; x++) {
+      [[y,x],[y,W-1-x],[H-1-y,x],[H-1-y,W-1-x]].forEach(([cy,cx]) => {
+        const i=(cy*W+cx)*4;
+        const d=Math.abs(px[i]-bR)+Math.abs(px[i+1]-bG)+Math.abs(px[i+2]-bB);
+        vs+=d*d;
+      });
+    }
+    // Factor 2.2 conservador (antes 3.8) para no expandirse a tonos de piel
+    const umbral = Math.max(32, Math.sqrt(vs/bN)*2.2+16);
+
+    // ── 3. Flood fill BFS desde los 4 bordes ─────────────────────────────
+    // Solo se reemplazan píxeles CONECTADOS al borde — nunca interiores.
+    const visited = new Uint8Array(W * H);
+    const queue   = new Int32Array(W * H);   // array circular eficiente
+    let qHead = 0, qTail = 0;
+
+    function tryAdd(x, y) {
+      if (x < 0 || y < 0 || x >= W || y >= H) return;
+      const idx = y * W + x;
+      if (visited[idx]) return;
+      const pi = idx * 4;
+      if (Math.abs(px[pi]-bR)+Math.abs(px[pi+1]-bG)+Math.abs(px[pi+2]-bB) < umbral) {
+        visited[idx] = 1;
+        queue[qTail++] = idx;
+      }
+    }
+
+    // Sembrar desde los 4 bordes de la imagen
+    for (let x=0; x<W; x++) { tryAdd(x, 0); tryAdd(x, H-1); }
+    for (let y=1; y<H-1; y++) { tryAdd(0, y); tryAdd(W-1, y); }
+
+    // BFS — se expande solo por píxeles conectados al fondo
+    while (qHead < qTail) {
+      const idx = queue[qHead++];
+      const x   = idx % W;
+      const y   = (idx - x) / W;
+      tryAdd(x-1, y); tryAdd(x+1, y);
+      tryAdd(x, y-1); tryAdd(x, y+1);
+    }
+
+    // ── 4. Reemplazar solo los píxeles marcados por el flood fill ─────────
+    const tr = parseInt(hexColor.slice(1,3), 16);
+    const tg = parseInt(hexColor.slice(3,5), 16);
+    const tb = parseInt(hexColor.slice(5,7), 16);
+
+    for (let i = 0; i < W * H; i++) {
+      if (visited[i]) {
+        const pi = i * 4;
+        px[pi]=tr; px[pi+1]=tg; px[pi+2]=tb;
+      }
+    }
+
+    ctx.putImageData(iD, 0, 0);
+    target.src = cv.toDataURL("image/jpeg", 0.92);
+    target.style.display = "block";
+  };
+  tmp.src = _origFotoSrc;
+}
+
+function cambiarTab(idx) {
+  document.querySelectorAll(".tab-mini-btn").forEach((b,i) =>
+    b.classList.toggle("activo", i===idx));
+  document.querySelectorAll(".tab-panel").forEach((p,i) =>
+    p.style.display = i===idx ? "block" : "none");
+}
+
+function colorDominante(imgEl, callback) {
+  const canvas = document.getElementById("canvasOculto");
+  const ctx    = canvas.getContext("2d");
+  const SZ     = 150;
+  canvas.width = SZ; canvas.height = SZ;
+  ctx.drawImage(imgEl, 0, 0, SZ, SZ);
+  const data = ctx.getImageData(0, 0, SZ, SZ).data;
+
+  // 1. Detectar color de fondo por las 4 esquinas (15x15 px c/u)
+  const PX = 15;
+  let fR=0, fG=0, fB=0, fN=0;
+  for (let y=0; y<PX; y++) {
+    for (let x=0; x<PX; x++) {
+      [[y,x],[y,SZ-1-x],[SZ-1-y,x],[SZ-1-y,SZ-1-x]].forEach(([cy,cx]) => {
+        const i=(cy*SZ+cx)*4;
+        fR+=data[i]; fG+=data[i+1]; fB+=data[i+2]; fN++;
+      });
+    }
+  }
+  fR/=fN; fG/=fN; fB/=fN;
+
+  // 2. Umbral adaptativo basado en std del fondo
+  let varSum=0;
+  for (let y=0; y<PX; y++)
+    for (let x=0; x<PX; x++)
+      [[y,x],[y,SZ-1-x],[SZ-1-y,x],[SZ-1-y,SZ-1-x]].forEach(([cy,cx]) => {
+        const i=(cy*SZ+cx)*4;
+        const d=Math.abs(data[i]-fR)+Math.abs(data[i+1]-fG)+Math.abs(data[i+2]-fB);
+        varSum+=d*d;
+      });
+  const std    = Math.sqrt(varSum/fN);
+  const umbral = Math.max(35, std*4+25);
+
+  // 3. Cuantizar píxeles de prenda (sin fondo ni extremos)
+  const bins = {};
+  let pixelesPrenda = 0;
+  for (let i=0; i<data.length; i+=4) {
+    const r=data[i], g=data[i+1], b=data[i+2];
+    const brillo=(r+g+b)/3;
+    const distFondo=Math.abs(r-fR)+Math.abs(g-fG)+Math.abs(b-fB);
+    if (distFondo < umbral) continue;
+    if (brillo > 220 || brillo < 12) continue;
+    pixelesPrenda++;
+    const key=`${Math.round(r/24)*24},${Math.round(g/24)*24},${Math.round(b/24)*24}`;
+    bins[key]=(bins[key]||0)+1;
+  }
+
+  // 4. Reintentar con umbral más bajo si pocos píxeles
+  if (pixelesPrenda < 50) {
+    const u2=umbral*0.5;
+    for (let i=0; i<data.length; i+=4) {
+      const r=data[i], g=data[i+1], b=data[i+2];
+      const brillo=(r+g+b)/3;
+      if (Math.abs(r-fR)+Math.abs(g-fG)+Math.abs(b-fB)<u2||brillo>235||brillo<10) continue;
+      const key=`${Math.round(r/32)*32},${Math.round(g/32)*32},${Math.round(b/32)*32}`;
+      bins[key]=(bins[key]||0)+1;
+    }
+  }
+
+  // 5. Color del bin más frecuente
+  let maxFreq=0, colorFinal=null;
+  Object.entries(bins).forEach(([key,freq]) => {
+    if (freq>maxFreq) {
+      maxFreq=freq;
+      const [r,g,b]=key.split(",").map(Number);
+      colorFinal={r,g,b};
+    }
+  });
+  callback(colorFinal);
+}
+
+function distColor(h1,h2) {
+  const p=h=>({r:parseInt(h.slice(1,3),16),g:parseInt(h.slice(3,5),16),b:parseInt(h.slice(5,7),16)});
+  const a=p(h1),b=p(h2);
+  return Math.sqrt((a.r-b.r)**2+(a.g-b.g)**2+(a.b-b.b)**2);
+}
+
+// Brillo promedio de un color hex (0–255). Colores muy oscuros (<50) no
+// deben usarse como fondo automático porque tapan la foto.
+function _brillo(hex) {
+  return (parseInt(hex.slice(1,3),16) + parseInt(hex.slice(3,5),16) + parseInt(hex.slice(5,7),16)) / 3;
+}
+
+function rgbHex(r,g,b){
+  return "#"+[r,g,b].map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,"0")).join("");
+}
+
+// ── Previsualizar ─────────────────────────────────────────────────────────
+function previsualizarColor() {
+  const f = document.getElementById("imgColor").files[0];
+  if (!f) return;
+  const prev = document.getElementById("prevColor");
+  prev.src = URL.createObjectURL(f);
+  prev.style.display = "block";
+  document.getElementById("resultadoCompleto").style.display = "none";
+}
+
+function previsualizarPrenda() {
+  const f = document.getElementById("imgPrenda").files[0];
+  if (!f) return;
+  const prev = document.getElementById("prevPrenda");
+  prev.src = URL.createObjectURL(f);
+  prev.style.display = "block";
+  document.getElementById("compatResultado").style.display = "none";
+}
+
+// ── Analizar ──────────────────────────────────────────────────────────────
+function analizarColor() {
+  const f = document.getElementById("imgColor").files[0];
+  if (!f) { alert("Selecciona una imagen primero"); return; }
+
+  document.getElementById("resultadoCompleto").style.display = "none";
+  document.getElementById("cargando").style.display = "block";
+
+  const fd = new FormData();
+  fd.append("imagen", f);
+
+  fetch("/analizar_colorimetria", { method:"POST", body:fd })
+  .then(r => r.json())
+  .then(data => {
+    document.getElementById("cargando").style.display = "none";
+    if (data.error) { alert("Error: " + data.error); return; }
+    mostrarResultado(data);
+  })
+  .catch(() => {
+    document.getElementById("cargando").style.display = "none";
+    alert("No se pudo conectar con el servidor.");
+  });
+}
+
+// ── Mostrar resultado completo ────────────────────────────────────────────
+function mostrarResultado(data) {
+  const est  = data.estacion || "indefinido";
+  const info = DATA[est] || DATA.indefinido;
+  estacionActual = est !== "indefinido" ? est : null;
+
+  // ── Foto ──
+  const fotoEl = document.getElementById("resFoto");
+  fotoEl.src = document.getElementById("prevColor").src;
+  _origFotoSrc = fotoEl.src;
+
+  // ── Textos principales ──
+  document.getElementById("resEstacion").textContent  = info.titulo;
+  document.getElementById("resEstacionEn").textContent = info.tituloEn;
+  document.getElementById("resDesc").textContent       = info.desc;
+
+  // ── Marco de color alrededor de la foto ──
+  const todosColores = info.paleta.flatMap(g => g.cols);
+  const marco  = document.getElementById("resFotoMarco");
+  const etiq   = document.getElementById("resFotoEtiqueta");
+  const swCont = document.getElementById("resFotoSwatches");
+  swCont.innerHTML = "";
+
+  function aplicarColorMarco(hex, nom) {
+    marco.style.borderColor = hex;
+    marco.style.boxShadow   = `0 0 0 4px ${hex}66`;
+    etiq.style.background   = hex;
+    etiq.textContent        = nom || hex;
+    _aplicarFondo(hex, "resFoto");
+  }
+
+  // Mostrar swatches de la paleta (primeros 10 colores)
+  // El color por defecto es el primero con brillo suficiente para no tapar la foto
+  const swColores  = todosColores.slice(0, 10);
+  const idxDefault = swColores.findIndex(c => _brillo(c) > 50);
+
+  swColores.forEach((hex, i) => {
+    const sw = document.createElement("div");
+    sw.className  = "res-swatch" + (i === idxDefault ? " activo" : "");
+    sw.style.background = hex;
+    sw.title = hex;
+    sw.onclick = () => {
+      document.querySelectorAll(".res-swatch").forEach(s => s.classList.remove("activo"));
+      sw.classList.add("activo");
+      aplicarColorMarco(hex, sw.title);
+    };
+    swCont.appendChild(sw);
+  });
+
+  // Aplicar color por defecto solo si hay uno con brillo visible
+  if (idxDefault >= 0) aplicarColorMarco(swColores[idxDefault], swColores[idxDefault]);
+
+  // ── Explicación detallada por qué es esta estación ──
+  const EXPLICACIONES = {
+    primavera: {
+      items: [
+        { icono:`<i data-lucide="thermometer" width="18" height="18" stroke-width="1.5"></i>`, bg:"#FFF0E0", label:"Temperatura del tono", valor:"Cálido — subtono dorado",
+          why:"Tu piel tiene más rojo que azul. Los tonos cálidos y dorados crean armonía natural con tu coloración.",
+          barra:{ pct:78, grad:"linear-gradient(90deg,#4682B4,#DAA520)", lo:"Frío", hi:"Cálido" }},
+        { icono:`<i data-lucide="sparkles" width="18" height="18" stroke-width="1.5"></i>`, bg:"#FFFDE0", label:"Luminosidad", valor:"Alta — tono claro y luminoso",
+          why:"Tu luminancia es alta. Los colores brillantes y claros realzan tu piel sin apagarla.",
+          barra:{ pct:80, grad:"linear-gradient(90deg,#1a1a1a,#fff)", lo:"Oscuro", hi:"Claro" }},
+        { icono:`<i data-lucide="palette" width="18" height="18" stroke-width="1.5"></i>`, bg:"#F0FFF4", label:"Profundidad", valor:"Suave — sin contraste extremo",
+          why:"Tu coloración es suave y delicada. Evita colores muy intensos o muy apagados cerca del rostro." },
+      ],
+      conclusion:"Cálido + Claro + Suave = <strong>Primavera Luminosa</strong>. Los tonos frescos, dorados y luminosos son tus mejores aliados. Evita los fríos y muy intensos."
+    },
+    verano: {
+      items: [
+        { icono:`<i data-lucide="thermometer" width="18" height="18" stroke-width="1.5"></i>`, bg:"#F0F4FF", label:"Temperatura del tono", valor:"Frío — subtono rosado",
+          why:"Tu piel tiene más azul que dorado. Los tonos fríos y empolvados armonizan perfectamente contigo.",
+          barra:{ pct:25, grad:"linear-gradient(90deg,#4682B4,#DAA520)", lo:"Frío", hi:"Cálido" }},
+        { icono:`<i data-lucide="sparkles" width="18" height="18" stroke-width="1.5"></i>`, bg:"#FFFDE0", label:"Luminosidad", valor:"Alta — tono claro y suave",
+          why:"Tu luminancia es clara. Los colores empolvados y suaves realzan tu belleza delicada.",
+          barra:{ pct:75, grad:"linear-gradient(90deg,#1a1a1a,#fff)", lo:"Oscuro", hi:"Claro" }},
+        { icono:`<i data-lucide="palette" width="18" height="18" stroke-width="1.5"></i>`, bg:"#F0FFF4", label:"Contraste", valor:"Bajo — coloración suave y uniforme",
+          why:"Tu coloración es armoniosa y suave. Los colores muy vivos o de alto contraste te pueden sobrecargar." },
+      ],
+      conclusion:"Frío + Claro + Suave = <strong>Verano Suave</strong>. Los tonos empolvados, lavandas y azules claros son tus mejores aliados. Evita los cálidos y muy saturados."
+    },
+    otono: {
+      items: [
+        { icono:`<i data-lucide="thermometer" width="18" height="18" stroke-width="1.5"></i>`, bg:"#FFF0E0", label:"Temperatura del tono", valor:"Cálido — subtono tierra u oliva",
+          why:"Tu piel refleja más rojo y dorado que azul. Los colores terrosos y cálidos crean una armonía profunda y natural.",
+          barra:{ pct:72, grad:"linear-gradient(90deg,#4682B4,#DAA520)", lo:"Frío", hi:"Cálido" }},
+        { icono:`<i data-lucide="sparkles" width="18" height="18" stroke-width="1.5"></i>`, bg:"#F5F5F0", label:"Luminosidad", valor:"Media — ni muy clara ni muy oscura",
+          why:"Tu tono tiene profundidad media. Los colores suaves y cálidos funcionan mejor que los extremos.",
+          barra:{ pct:50, grad:"linear-gradient(90deg,#1a1a1a,#fff)", lo:"Oscuro", hi:"Claro" }},
+        { icono:`<i data-lucide="palette" width="18" height="18" stroke-width="1.5"></i>`, bg:"#F0FFF4", label:"Profundidad", valor:"Media — coloración rica y terrosa",
+          why:"Tu coloración tiene riqueza natural. Los rojos quemados, verdes oliva y mostaza potencian tu imagen." },
+      ],
+      conclusion:"Cálido + Media luminosidad + Profundidad media = <strong>Otoño Suave</strong>. Los tonos tierra, verdes oliva y mostaza son tus aliados. Evita fríos intensos y blanco óptico."
+    },
+    invierno: {
+      items: [
+        { icono:`<i data-lucide="thermometer" width="18" height="18" stroke-width="1.5"></i>`, bg:"#F0F4FF", label:"Temperatura del tono", valor:"Frío — subtono rosado o neutro",
+          why:"Tu piel tiene más azul que dorado. Los colores fríos y puros crean un impacto visual poderoso.",
+          barra:{ pct:20, grad:"linear-gradient(90deg,#4682B4,#DAA520)", lo:"Frío", hi:"Cálido" }},
+        { icono:`<i data-lucide="sparkles" width="18" height="18" stroke-width="1.5"></i>`, bg:"#F5F5F5", label:"Luminosidad", valor:"Baja a media — tono profundo",
+          why:"Tu coloración es profunda y de alto contraste. Los colores intensos y puros te favorecen enormemente.",
+          barra:{ pct:30, grad:"linear-gradient(90deg,#1a1a1a,#fff)", lo:"Oscuro", hi:"Claro" }},
+        { icono:`<i data-lucide="palette" width="18" height="18" stroke-width="1.5"></i>`, bg:"#F0F4FF", label:"Contraste", valor:"Alto — coloración dramática y definida",
+          why:"Tu coloración de alto contraste pide colores igualmente contrastantes. El negro, blanco puro y rojos vivos son tus mejores opciones." },
+      ],
+      conclusion:"Frío + Profundo + Alto contraste = <strong>Invierno Profundo</strong>. Los colores puros e intensos potencian tu belleza. Evita los tonos cálidos y apagados."
+    },
+    indefinido: {
+      items:[],
+      conclusion:"No se pudo determinar la estación. Intenta con una foto con mejor iluminación y fondo claro."
+    }
+  };
+
+  const expData = EXPLICACIONES[est] || EXPLICACIONES.indefinido;
+  const expEl   = document.getElementById("resExplicacion");
+  expEl.innerHTML = expData.items.map(item => `
+    <div class="exp-item">
+      <div class="exp-icono" style="background:${item.bg};display:flex;align-items:center;justify-content:center">${item.icono}</div>
+      <div class="exp-texto">
+        <div class="exp-label">${item.label}</div>
+        <div class="exp-valor">${item.valor}</div>
+        <div class="exp-why">${item.why}</div>
+        ${item.barra ? `
+        <div class="exp-barra-wrap">
+          <div class="exp-barra-fill" style="width:${item.barra.pct}%;background:${item.barra.grad}"></div>
+        </div>
+        <div class="exp-barra-labels"><span>${item.barra.lo}</span><span>${item.barra.hi}</span></div>
+        ` : ""}
+      </div>
+    </div>
+  `).join("") + `<div class="exp-conclusion">${expData.conclusion}</div>`;
+  lucide.createIcons();
+
+  // ── Paleta favorable (elemento opcional) ──
+  const _paletaFavEl = document.getElementById("resPaletaFavorece");
+  if (_paletaFavEl) {
+    _paletaFavEl.innerHTML = info.paleta.map(g => `
+    <div class="grupo-paleta">
+      <div class="grupo-label">${g.grupo}</div>
+      <div class="chips-row">
+        ${g.cols.map(c => `
+          <div class="chip" style="background:${c}">
+            <span class="chip-label">${c}</span>
+          </div>`).join("")}
+      </div>
+    </div>`
+    ).join("");
+  }
+
+  // ── Colores a evitar ──
+  const chipsApaganEl = document.getElementById("chipsApagan");
+  if (chipsApaganEl) chipsApaganEl.innerHTML = "";
+  const apImg = document.getElementById("apaganFotoImg");
+  if (apImg) {
+    apImg.src = fotoEl.src;
+    apImg.style.display = "block";
+    const apPh = document.getElementById("apaganPlaceholder");
+    if (apPh) apPh.style.display = "none";
+  }
+
+  // ── Metales y accesorios ──
+  document.getElementById("resMetales").innerHTML = info.metales.map(m => `
+    <div class="metal-card">
+      <div class="metal-nombre">${m.nom}</div>
+      <div class="metal-sub">${m.sub}</div>
+      <ul class="metal-lista">
+        ${m.lista.map(l => `<li>${l}</li>`).join("")}
+      </ul>
+    </div>`
+  ).join("");
+
+  document.getElementById("resAccesorios").innerHTML = info.accesorios.map(a => `
+    <div class="acc-item">
+      <div class="acc-titulo">${a.titulo}</div>
+      <div class="acc-texto">${a.texto}</div>
+    </div>`
+  ).join("");
+
+  // ── Consejos ──
+  document.getElementById("resConsejos").innerHTML = (info.consejos||[]).map(c => `
+    <div class="consejo-card">
+      <div class="consejo-icono">${c.ico}</div>
+      <div class="consejo-texto">${c.txt}</div>
+    </div>`
+  ).join("");
+  lucide.createIcons();
+
+  // ── Mensaje clave ──
+  document.getElementById("resMensaje").innerHTML = info.mensaje;
+
+  // ── Carrusel de prendas compatibles ──
+  cargarPrendasCompatibles(info);
+
+  // ── Mostrar paneles ──
+  if (estacionActual) {
+    document.getElementById("panelCombinado").style.display = "block";
+    document.getElementById("secSelector").style.display    = "block";
+    cambiarTab(0);
+    iniciarPanelUnificado(info);
+    iniciarPanelApagan(info);
+  }
+
+  // ── Mostrar resultado ──
+  const res = document.getElementById("resultadoCompleto");
+  res.style.display = "flex";
+  res.scrollIntoView({ behavior:"smooth", block:"start" });
+}
+
+// ── Verificar compatibilidad de prenda ───────────────────────────────────
+function verificarCompatibilidad() {
+  if (!estacionActual) return;
+  const prev = document.getElementById("prevPrenda");
+  if (!prev.src || prev.style.display==="none") { alert("Selecciona una imagen"); return; }
+
+  colorDominante(prev, function(color) {
+    if (!color) { alert("No se pudo detectar el color"); return; }
+    const hexColor = rgbHex(color.r, color.g, color.b);
+    const info = DATA[estacionActual];
+    const todosColores = info.paleta.flatMap(g => g.cols);
+
+    const distFav = Math.min(...todosColores.map(c => distColor(hexColor, c)));
+    const distEv  = Math.min(...info.evitar.map(c => distColor(hexColor, c.hex)));
+
+    let txt, sub, col;
+    if (distFav < 70) { txt="✓ Te favorece"; sub="Este color armoniza bien con tu estación "+info.titulo+"."; col="#1D9E75"; }
+    else if (distEv < 70 && distEv < distFav) { txt="✗ Mejor evitarlo"; sub="Este color puede restar luminosidad a tu coloración."; col="#C0392B"; }
+    else if (distFav < 120) { txt="~ Neutro"; sub="Funciona, aunque no es el más potenciador."; col="#B5885C"; }
+    else { txt="✗ Mejor evitarlo"; sub="Hay colores que te favorecerían mucho más."; col="#C0392B"; }
+
+    // Añadir a la sección correspondiente
+    const esFavPrenda = distFav < 70 || (distEv >= 70 && distFav < 120);
+    añadirASeccion(hexColor, esFavPrenda);
+
+    document.getElementById("veredictoTexto").textContent = txt;
+    document.getElementById("veredictoTexto").style.color = col;
+    document.getElementById("veredictoSub").textContent   = sub;
+    document.getElementById("colorDetectado").style.background = hexColor;
+    document.getElementById("colorDetectadoInfo").textContent  = `Color: ${hexColor}`;
+
+    const cercanos = [...todosColores]
+      .map(c => ({ hex:c, dist:distColor(hexColor,c) }))
+      .sort((a,b) => a.dist-b.dist).slice(0,5);
+    document.getElementById("paletaCercanos").innerHTML = cercanos.map(c =>
+      `<div class="chip" style="background:${c.hex};width:32px;height:32px" title="${c.hex}"></div>`
+    ).join("");
+
+    document.getElementById("compatResultado").style.display = "block";
+  });
+}
+
+// ── Panel combinado: paleta ───────────────────────────────────────────────
+let chipActivo = null;
+
+function iniciarPanelUnificado(info) {
+  // Mostrar foto en panel paleta
+  const panelImg = document.getElementById("panelFotoImg");
+  if (_origFotoSrc) {
+    panelImg.src = _origFotoSrc;
+    panelImg.style.display = "block";
+    document.getElementById("panelPlaceholder").style.display = "none";
+  }
+
+  const marco = document.getElementById("panelMarco");
+  const etiq  = document.getElementById("panelEtiq");
+  const swEl  = document.getElementById("panelSwatches");
+  swEl.innerHTML = "";
+
+  const todosColores = info.paleta.flatMap(g => g.cols);
+
+  // Swatches rápidos de la paleta (primeros 12)
+  // El activo inicial es el primer color con brillo visible (>50) para no tapar la foto
+  const swPanel12   = todosColores.slice(0, 12);
+  const idxDefPanel = swPanel12.findIndex(c => _brillo(c) > 50);
+
+  swPanel12.forEach((hex, i) => {
+    const sw = document.createElement("div");
+    sw.className = "res-swatch" + (i === idxDefPanel ? " activo" : "");
+    sw.style.background = hex;
+    sw.title = hex;
+    sw.onclick = () => {
+      document.querySelectorAll("#panelSwatches .res-swatch").forEach(s => s.classList.remove("activo"));
+      sw.classList.add("activo");
+      // Sincronizar con chip correspondiente
+      const chip = [...document.querySelectorAll("#panelPaletaGrupos .chip-panel")]
+        .find(c => c.title === hex);
+      if (chip) chip.click(); else _aplicarFondo(hex, "panelFotoImg");
+    };
+    swEl.appendChild(sw);
+  });
+
+  // Construir paleta por grupos (chips clicables)
+  const contenedor = document.getElementById("panelPaletaGrupos");
+  contenedor.innerHTML = "";
+
+  info.paleta.forEach(g => {
+    const lbl = document.createElement("div");
+    lbl.className = "grupo-lbl-panel";
+    lbl.textContent = g.grupo;
+    contenedor.appendChild(lbl);
+
+    const fila = document.createElement("div");
+    fila.className = "chips-panel";
+    g.cols.forEach(hex => {
+      const ch = document.createElement("div");
+      ch.className = "chip-panel";
+      ch.style.background = hex;
+      ch.title = hex;
+      ch.setAttribute("role","button");
+      ch.setAttribute("aria-label","Color " + hex);
+      ch.addEventListener("click", () => seleccionarChip(hex, g.grupo, ch, info));
+      fila.appendChild(ch);
+    });
+    contenedor.appendChild(fila);
+  });
+
+  // Seleccionar el primer color usable (brillo > 50) para no tapar la foto con negro
+  const todosChips  = [...contenedor.querySelectorAll(".chip-panel")];
+  const chipDefault = todosChips.find(ch => _brillo(ch.title) > 50);
+  if (chipDefault) chipDefault.click();
+  else if (todosChips.length > 0) {
+    // Todos son muy oscuros: marcar el primero visualmente sin aplicar fondo
+    todosChips[0].classList.add("activo");
+    chipActivo = todosChips[0];
+  }
+}
+
+function seleccionarChip(hex, grupo, el, info) {
+  if (chipActivo) chipActivo.classList.remove("activo");
+  chipActivo = el;
+  el.classList.add("activo");
+
+  // Aplicar fondo en foto del panel
+  const marco = document.getElementById("panelMarco");
+  const etiq  = document.getElementById("panelEtiq");
+  if (marco) { marco.style.borderColor = hex; marco.style.boxShadow = `0 0 0 4px ${hex}66`; }
+  if (etiq)  { etiq.style.background = hex; etiq.textContent = hex; }
+  _aplicarFondo(hex, "panelFotoImg");
+
+  // Sincronizar swatch activo
+  document.querySelectorAll("#panelSwatches .res-swatch").forEach(sw => {
+    sw.classList.toggle("activo", sw.title === hex);
+  });
+
+  // Calcular si favorece
+  const todosOk = info.paleta.flatMap(g => g.cols);
+  const distFav = Math.min(...todosOk.map(c => distColor(hex, c)));
+  const distEv  = info.evitar.length
+    ? Math.min(...info.evitar.map(e => distColor(hex, e.hex)))
+    : 999;
+
+  let badgeHtml, desc;
+  if (distFav < 80) {
+    badgeHtml = '<div class="panel-badge ok">✓ Te favorece</div>';
+    desc = "Este color armoniza muy bien con tu estación " + info.titulo + ".";
+  } else if (distEv < 80 && distEv < distFav) {
+    badgeHtml = '<div class="panel-badge no">✗ Mejor evitarlo</div>';
+    desc = "Este tono puede restar luminosidad a tu coloración natural.";
+  } else {
+    badgeHtml = '<div class="panel-badge neu">~ Neutro</div>';
+    desc = "Funciona, aunque hay colores más potenciadores para ti.";
+  }
+
+  document.getElementById("panelInfoActivo").innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+      <div class="panel-color-muestra" style="background:${hex}"></div>
+      <div>
+        <div class="panel-color-hex">${hex}</div>
+        <div class="panel-color-nom">${grupo}</div>
+      </div>
+    </div>
+    ${badgeHtml}
+    <div class="panel-color-desc">${desc}</div>
+  `;
+}
+
+// ── Sección selector de color libre ───────────────────────────────────────
+
+document.getElementById("colorLibre").addEventListener("input", function() {
+  const v = this.value;
+  document.getElementById("pickerPreview").style.background = v;
+  document.getElementById("pickerHexLbl").textContent = v;
+});
+
+function verificarColorLibre() {
+  if (!estacionActual) return;
+  const color   = document.getElementById("colorLibre").value;
+  const info    = DATA[estacionActual];
+  const todosOk = info.paleta.flatMap(g => g.cols);
+  const distFav = Math.min(...todosOk.map(c => distColor(color, c)));
+  const distEv  = Math.min(...info.evitar.map(c => distColor(color, c.hex)));
+
+  let badgeHtml, desc, agregar = false;
+  if (distFav < 75) {
+    badgeHtml = '<div class="sel-badge ok">✓ Te favorece</div>';
+    desc      = "Este color armoniza bien con tu estación " + info.titulo + ".";
+    agregar   = true;
+  } else if (distEv < 75 && distEv < distFav) {
+    badgeHtml = '<div class="sel-badge no">✗ Mejor evitarlo</div>';
+    desc      = "Este tono puede restar luminosidad a tu coloración natural.";
+  } else if (distFav < 130) {
+    badgeHtml = '<div class="sel-badge neu">~ Neutro</div>';
+    desc      = "Funciona, aunque hay opciones más potenciadoras para ti.";
+    agregar   = true;
+  } else {
+    badgeHtml = '<div class="sel-badge no">✗ Mejor evitarlo</div>';
+    desc      = "Hay colores que te favorecerían mucho más.";
+  }
+
+  document.getElementById("selResultado").style.display = "block";
+  document.getElementById("selResultado").innerHTML =
+    badgeHtml + `<div class="sel-desc-txt">${desc}</div>`;
+
+  // Añadir a la sección correspondiente
+  añadirASeccion(color, agregar);
+}
+
+// ── Panel combinado: colores que apagan ───────────────────────────────────
+let chipApaganActivo = null;
+
+function iniciarPanelApagan(info) {
+  // Mostrar foto en panel apagan
+  const img = document.getElementById("apaganFotoImg");
+  if (_origFotoSrc) {
+    img.src = _origFotoSrc;
+    img.style.display = "block";
+    document.getElementById("apaganPlaceholder").style.display = "none";
+  }
+
+  const marco = document.getElementById("apaganMarco");
+  const etiq  = document.getElementById("apaganEtiq");
+  const swEl  = document.getElementById("apaganSwatches");
+  swEl.innerHTML = "";
+
+  const cont = document.getElementById("chipsApagan");
+  cont.innerHTML = "";
+
+  const evitarList = info.evitar || [];
+  // El activo inicial es el primer color con brillo visible para no tapar la foto
+  const idxDefAp = evitarList.findIndex(c => _brillo(c.hex) > 50);
+
+  evitarList.forEach((c, i) => {
+    // Chip clicable en la lista
+    const ch = document.createElement("div");
+    ch.className = "chip-apagan";
+    ch.style.background = c.hex;
+    ch.title = c.label || c.hex;
+    ch.addEventListener("click", () => seleccionarApagan(c, ch, info));
+    cont.appendChild(ch);
+
+    // Swatch de navegación rápida
+    const sw = document.createElement("div");
+    sw.className = "res-swatch" + (i === idxDefAp ? " activo" : "");
+    sw.style.background = c.hex;
+    sw.title = c.label || c.hex;
+    sw.onclick = () => {
+      document.querySelectorAll("#apaganSwatches .res-swatch").forEach(s => s.classList.remove("activo"));
+      sw.classList.add("activo");
+      ch.click();
+    };
+    swEl.appendChild(sw);
+  });
+
+  // Seleccionar el primer color usable (brillo > 50) para no tapar la foto
+  const todosChipsAp = [...cont.querySelectorAll(".chip-apagan")];
+  const chipDefAp    = evitarList[idxDefAp] ? todosChipsAp[idxDefAp] : null;
+  if (chipDefAp) chipDefAp.click();
+  else if (todosChipsAp.length > 0) {
+    todosChipsAp[0].classList.add("activo");
+    chipApaganActivo = todosChipsAp[0];
+  }
+}
+
+function seleccionarApagan(c, el, info) {
+  if (chipApaganActivo) chipApaganActivo.classList.remove("activo");
+  chipApaganActivo = el;
+  el.classList.add("activo");
+
+  // Marco + fondo en foto
+  const marco = document.getElementById("apaganMarco");
+  const etiq  = document.getElementById("apaganEtiq");
+  if (marco) { marco.style.borderColor = c.hex; marco.style.boxShadow = `0 0 0 4px ${c.hex}66`; }
+  if (etiq)  { etiq.style.background = c.hex; etiq.textContent = c.label || c.hex; }
+  _aplicarFondo(c.hex, "apaganFotoImg");
+
+  // Sincronizar swatch activo
+  document.querySelectorAll("#apaganSwatches .res-swatch").forEach(sw => {
+    sw.classList.toggle("activo", sw.title === (c.label || c.hex) || sw.style.backgroundColor === c.hex);
+  });
+
+  document.getElementById("apaganInfoActivo").innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+      <div class="panel-color-muestra" style="background:${c.hex};width:44px;height:44px;border-radius:8px;border:1px solid #EAE4DE;flex-shrink:0"></div>
+      <div>
+        <div class="panel-color-hex" style="font-size:13px;font-weight:600;color:#3D1F2E">${c.hex}</div>
+        <div class="panel-color-nom" style="font-size:11px;color:#9A8A84">${c.label || ""}</div>
+      </div>
+    </div>
+    <div class="panel-badge no" style="display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;margin:8px 0 6px;background:#FCEAEA;color:#8B2020">✗ Te apaga</div>
+    <div class="panel-color-desc" style="font-size:.82rem;color:#5A4850;line-height:1.65">
+      Este tono contrasta con tu coloración natural y puede restar luminosidad a tu rostro.
+    </div>
+  `;
+}
+
+// ── Carrusel de prendas compatibles ──────────────────────────────────────
+const hexDist = distColor;
+
+function cargarPrendasCompatibles(info) {
+  const seccion = document.getElementById("secCarrusel");
+  const track   = document.getElementById("carruselTrack");
+  if (!seccion || !track) return;
+
+  track.innerHTML = "";
+  const todosOk  = info.paleta.flatMap(g => g.cols);
+  const evitar   = (info.evitar || []).map(e => e.hex);
+
+  Promise.all([
+    fetch("/prendas").then(r => r.json()),
+    fetch("/meta_prendas").then(r => r.json()).catch(() => ({}))
+  ]).then(([prendas, meta]) => {
+    const lista = [];
+    Object.values(prendas).forEach(arr => {
+      arr.forEach(ruta => {
+        const m = meta[ruta] || {};
+        const colorHex = m.color ? m.color.split(",")[0] : null;
+        let score = 0;
+        let nivel = "neutro";
+        if (colorHex) {
+          const dFav = Math.min(...todosOk.map(c => hexDist(colorHex, c)));
+          const dEv  = evitar.length
+            ? Math.min(...evitar.map(c => hexDist(colorHex, c)))
+            : 999;
+          if (dFav < 80)                          { score = 2; nivel = "match"; }
+          else if (dEv < 70 && dEv < dFav)        { score = 0; nivel = "evitar"; }
+          else if (dFav < 130)                     { score = 1; nivel = "neutro"; }
+          else                                     { score = 0; nivel = "evitar"; }
+        } else {
+          score = 1; nivel = "neutro";
+        }
+        lista.push({ ruta, cat:m.categoria||"prenda", nivel, score });
+      });
+    });
+
+    const mostrar = lista
+      .filter(p => p.nivel !== "evitar")
+      .sort((a,b) => b.score - a.score);
+
+    if (mostrar.length === 0) {
+      track.innerHTML = '<div class="carrusel-vacio">Aún no tienes prendas en el armario. Añade algunas para ver recomendaciones.</div>';
+      seccion.style.display = "block";
+      return;
+    }
+
+    mostrar.forEach(p => {
+      const card = document.createElement("div");
+      card.className = "car-card " + p.nivel;
+
+      if (p.nivel === "match") {
+        const badge = document.createElement("div");
+        badge.className = "car-badge match";
+        badge.textContent = "✓";
+        card.appendChild(badge);
+      } else if (p.nivel === "neutro") {
+        const badge = document.createElement("div");
+        badge.className = "car-badge neutro";
+        badge.textContent = "~";
+        card.appendChild(badge);
+      }
+
+      const img = document.createElement("img");
+      img.className = "car-img";
+      img.src = p.ruta + "?t=" + Date.now();
+      img.alt = p.cat;
+      card.appendChild(img);
+
+      const info2 = document.createElement("div");
+      info2.className = "car-info";
+      info2.innerHTML = `<div class="car-cat">${p.cat}</div>`;
+      card.appendChild(info2);
+
+      track.appendChild(card);
+    });
+
+    seccion.style.display = "block";
+  }).catch(e => {
+    console.error("Error cargando prendas:", e);
+  });
+}
+
+function scrollCarrusel(dir) {
+  const track = document.getElementById("carruselTrack");
+  if (track) track.scrollBy({ left: dir * 220, behavior:"smooth" });
+}
+
+// ── Añadir color verificado a la sección correspondiente ─────────────────
+const _coloresYaAgregados = new Set();
+
+function añadirASeccion(hex, favorece) {
+  if (_coloresYaAgregados.has(hex)) return;
+  _coloresYaAgregados.add(hex);
+
+  if (favorece) {
+    // Añadir chip al panel de paleta favorable en un grupo "Probados por ti"
+    let grupoEl = document.getElementById("grupoMisColores");
+    if (!grupoEl) {
+      const lbl = document.createElement("div");
+      lbl.className = "grupo-lbl-panel";
+      lbl.textContent = "Probados por ti";
+      document.getElementById("panelPaletaGrupos").appendChild(lbl);
+      const fila = document.createElement("div");
+      fila.className = "chips-panel";
+      fila.id = "grupoMisColores";
+      document.getElementById("panelPaletaGrupos").appendChild(fila);
+      grupoEl = fila;
+    }
+    const ch = document.createElement("div");
+    ch.className = "chip-panel";
+    ch.style.background = hex;
+    ch.title = hex + " (añadido por ti)";
+    ch.style.outline = "2px solid #1D9E75";
+    ch.style.outlineOffset = "2px";
+    if (estacionActual) {
+      const info = DATA[estacionActual];
+      ch.addEventListener("click", () => seleccionarChip(hex, "Probado por ti", ch, info));
+    }
+    grupoEl.appendChild(ch);
+
+  } else {
+    // Añadir chip al panel de colores que apagan
+    const cont = document.getElementById("chipsApagan");
+    if (!cont) return;
+    const ch = document.createElement("div");
+    ch.className = "chip-apagan";
+    ch.style.background = hex;
+    ch.title = hex + " (añadido por ti)";
+    ch.style.outline = "2px solid #C0392B";
+    ch.style.outlineOffset = "2px";
+    if (estacionActual) {
+      const info = DATA[estacionActual];
+      const c = { hex, label: "Probado por ti" };
+      ch.addEventListener("click", () => seleccionarApagan(c, ch, info));
+    }
+    cont.appendChild(ch);
+  }
+}
+</script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>lucide.createIcons();</script>
+</body>
+</html>

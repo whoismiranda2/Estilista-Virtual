@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(pip install flask-login flask-sqlalchemy flask-mail flask-bcrypt itsdangerous --break-system-packages --quiet 2>&1)",
+      "PowerShell(pip install flask-login flask-sqlalchemy flask-mail flask-bcrypt itsdangerous --quiet 2>&1)",
+      "PowerShell(python -m pip install flask-login flask-sqlalchemy flask-mail flask-bcrypt itsdangerous 2>&1)",
+      "PowerShell(New-Item -ItemType Directory -Force \"c:\\\\Users\\\\andre\\\\OneDrive\\\\Documentos\\\\Borrar pront\\\\pruebapp\\\\PP_multiusuario\\\\templates\\\\auth\")",
+      "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\andre\\\\OneDrive\\\\Documentos\\\\Borrar pront\\\\pruebapp\\\\PP\" -Recurse | Select-Object FullName | ForEach-Object { $_.FullName -replace [regex]::Escape\\(\"c:\\\\Users\\\\andre\\\\OneDrive\\\\Documentos\\\\Borrar pront\\\\pruebapp\\\\PP\"\\), \".\" })",
+      "PowerShell(Get-ChildItem -Path 'c:\\\\Users\\\\andre\\\\OneDrive\\\\Documentos\\\\Borrar pront\\\\pruebapp\\\\PP' -Recurse -Directory | Where-Object {$_.Name -eq 'templates'} | Select-Object FullName)"
+    ]
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "/static/prendas/falda/falda_1780126742.bmp": {
+    "categoria": "falda",
+    "color": "#80a0c0",
+    "color_nombre": "Azul cielo",
+    "estacion": "primavera,verano",
+    "ocasion": "casual,cita",
+    "material": "denim",
+    "valoracion": 4,
+    "fecha": 1780126742
+  },
+  "/static/prendas/top/top_1780126817.bmp": {
+    "categoria": "top",
+    "color": "#a0a0a0",
+    "color_nombre": "Gris",
+    "estacion": "otono,invierno",
+    "ocasion": "trabajo,formal",
+    "material": "",
+    "valoracion": 3,
+    "fecha": 1780126817
+  },
+  "/static/prendas/top/top_1780127428.bmp": {
+    "categoria": "top",
+    "color": "#d83090,#f0a8d8",
+    "color_nombre": "Rosa fuerte, Rosa",
+    "estacion": "",
+    "ocasion": "",
+    "material": "",
+    "valoracion": 0,
+    "fecha": 1780127428
+  },
+  "/static/prendas/falda/falda_1780295676.bmp": {
+    "categoria": "falda",
+    "color": "#001848",
+    "color_nombre": "Azul marino",
+    "estacion": "primavera,verano",
+    "ocasion": "casual",
+    "material": "denim",
+    "valoracion": 4,
+    "fecha": 1780295676
+  },
+  "/static/prendas/top/top_1780295737.bmp": {
+    "categoria": "top",
+    "color": "#303030",
+    "color_nombre": "Verde pizarra",
+    "estacion": "invierno",
+    "ocasion": "casual",
+    "material": "",
+    "valoracion": 3,
+    "fecha": 1780295737
+  },
+  "/static/prendas/top/top_1780299804.bmp": {
+    "categoria": "top",
+    "color": "#607890",
+    "color_nombre": "Gris",
+    "estacion": "verano,otono",
+    "ocasion": "casual,formal",
+    "material": "denim",
+    "valoracion": 3,
+    "fecha": 1780299804
+  },
+  "/static/prendas/falda/falda_1780397461.bmp": {
+    "categoria": "falda",
+    "color": "#607890,#304860",
+    "color_nombre": "Gris, Verde pizarra",
+    "estacion": "primavera,verano",
+    "ocasion": "casual,cita",
+    "material": "denim",
+    "valoracion": 5,
+    "fecha": 1780397461
+  },
+  "/static/prendas/vestido/vestido_1780399893.bmp": {
+    "categoria": "vestido",
+    "color": "#483030",
+    "color_nombre": "Verde pizarra",
+    "estacion": "primavera,verano",
+    "ocasion": "casual",
+    "material": "",
+    "valoracion": 3,
+    "fecha": 1780399893
+  },
+  "/static/prendas/pantalon/pantalon_1780401776.bmp": {
+    "categoria": "pantalon",
+    "color": "#181818",
+    "color_nombre": "Negro",
+    "estacion": "otono,invierno",
+    "ocasion": "trabajo",
+    "material": "",
+    "valoracion": 3,
+    "fecha": 1780401776
+  },
+  "/static/prendas/falda/falda_1780403283.bmp": {
+    "categoria": "falda",
+    "color": "#607890,#304860",
+    "color_nombre": "Gris, Verde pizarra",
+    "estacion": "primavera,verano",
+    "ocasion": "casual,cita",
+    "material": "denim",
+    "valoracion": 4,
+    "fecha": 1780403283
+  },
+  "/static/prendas/falda/falda_1780432497.bmp": {
+    "categoria": "falda",
+    "color": "#607890,#304860",
+    "color_nombre": "Gris, Verde pizarra",
+    "estacion": "primavera,verano",
+    "ocasion": "casual",
+    "material": "denim",
+    "valoracion": 4,
+    "fecha": 1780432497
+  },
+  "/static/prendas/pantalon/pantalon_1781763413.bmp": {
+    "categoria": "pantalon",
+    "color": "#181818",
+    "color_nombre": "Negro",
+    "estacion": "otono,invierno",
+    "ocasion": "trabajo,casual",
+    "material": "denim",
+    "valoracion": 3,
+    "fecha": 1781763413
+  }
+}

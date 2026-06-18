@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Archivos temporales generados en runtime
+static/entrada.bmp
+static/procesada.bmp
+static/colorimetria_temp.bmp
+static/cuerpo_temp.bmp
+static/cuerpo_marcado.bmp
+static/foto_temp.bmp
+
+# Binario Windows (en Linux se compila desde vision/)
+procesar.exe
+entrenar.exe

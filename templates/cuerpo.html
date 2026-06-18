@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Tipo de Cuerpo</title>
+<link rel="stylesheet" href="/static/style.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap');
+.cuerpo-header { display:flex; align-items:center; justify-content:space-between; padding:18px 32px; }
+.cuerpo-header h1 { font-family:'Playfair Display',serif; font-size:1.85rem; font-weight:700; color:#ffffff; }
+.instrucciones { padding:0 32px 20px; font-size:1.08rem; color:#7A6E68; line-height:1.8; }
+.upload-zona { padding:0 32px 36px; display:flex; gap:22px; flex-wrap:wrap; align-items:flex-start; }
+.upload-card {
+    background:white; border-radius:16px; border:1.5px dashed #D4A0B0;
+    padding:26px; flex:0 0 250px; display:flex; flex-direction:column;
+    align-items:center; gap:14px; text-align:center;
+    box-shadow:0 2px 16px rgba(109,46,70,.08);
+}
+.upload-card input[type="file"] { width:100%; font-size:.92rem; }
+.upload-card img {
+    width:220px; height:280px; object-fit:contain; border-radius:10px;
+    background:#FAF7F5; display:none; border:1px solid #EAE4DE; max-width:none; margin:0;
+}
+.btn-analizar {
+    background:linear-gradient(135deg,#6D2E46,#A0455F); color:white; border:none;
+    padding:13px 26px; border-radius:30px; cursor:pointer; font-size:.96rem;
+    font-family:'DM Sans',sans-serif; font-weight:500; width:100%;
+    transition:opacity .2s, transform .15s; letter-spacing:.03em;
+}
+.btn-analizar:hover { opacity:.88; transform:translateY(-2px); }
+.resultado-card {
+    display:none; flex:1; min-width:300px; background:white;
+    border-radius:16px; padding:28px; box-shadow:0 4px 24px rgba(109,46,70,.12);
+    border:1px solid #EAE4DE;
+}
+.tipo-titulo { font-family:'Playfair Display',serif; font-size:1.75rem; font-weight:700; color:#6D2E46; margin-bottom:5px; }
+.tipo-subtitulo { font-size:1rem; color:#9A8A84; margin-bottom:20px; }
+.barra-wrap { margin-bottom:12px; }
+.barra-label { display:flex; justify-content:space-between; font-size:.92rem; color:#7A6E68; margin-bottom:5px; }
+.barra-track { background:#F0EAE5; border-radius:5px; height:10px; }
+.barra-fill { height:10px; border-radius:5px; transition:width .5s ease; }
+.descripcion { margin-top:20px; padding:16px 18px; background:#FAF4F7; border-radius:12px; font-size:1.05rem; color:#4A3840; line-height:1.8; border-left:4px solid #6D2E46; }
+.tips-titulo { font-size:1.05rem; font-weight:600; color:#3D1F2E; margin:22px 0 10px; font-family:'DM Sans',sans-serif; }
+.tip { font-size:1.02rem; color:#6A5860; padding:9px 14px; background:white; border-radius:10px; border:1px solid #EAE4DE; margin-bottom:7px; line-height:1.65; }
+.silueta-wrap { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+.silueta-item { flex:1; min-width:80px; text-align:center; padding:12px 8px; border-radius:12px; border:1.5px solid #EAE4DE; font-size:.82rem; color:#9A8A84; cursor:default; transition:.15s; font-family:'DM Sans',sans-serif; }
+.silueta-item.activo { border-color:#6D2E46; background:#FAF0F4; color:#6D2E46; font-weight:600; }
+.silueta-emoji { font-size:1.65rem; display:block; margin-bottom:5px; }
+.cargando { display:none; text-align:center; padding:48px; color:#9A8A84; font-size:.95rem; }
+
+/* ── Tips Modal & Widget ── */
+.tips-overlay {
+  position:fixed; inset:0; z-index:200;
+  background:rgba(28,20,16,.52);
+  display:flex; align-items:center; justify-content:center;
+  backdrop-filter:blur(5px);
+  animation:tipsOvIn .22s ease;
+}
+.tips-overlay.saliendo { animation:tipsOvOut .22s ease forwards; }
+@keyframes tipsOvIn  { from{opacity:0} to{opacity:1} }
+@keyframes tipsOvOut { from{opacity:1} to{opacity:0} }
+
+.tips-modal {
+  background:white; border-radius:22px; padding:32px 32px 24px;
+  max-width:480px; width:92%; position:relative;
+  box-shadow:0 24px 64px rgba(109,46,70,.28);
+  animation:tipsModalIn .32s cubic-bezier(.34,1.45,.64,1);
+}
+@keyframes tipsModalIn {
+  from{transform:scale(.82) translateY(24px);opacity:0}
+  to  {transform:scale(1)   translateY(0);   opacity:1}
+}
+
+.tips-close {
+  position:absolute; top:13px; right:14px;
+  width:30px; height:30px; border-radius:50%; border:none;
+  background:#F5F0EC; color:#7A6E68; font-size:1.15rem; line-height:1;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  transition:background .15s;
+}
+.tips-close:hover { background:#EAE4DE; }
+
+.tips-modal-header { text-align:center; margin-bottom:20px; }
+.tips-modal-icon   { font-size:2.4rem; margin-bottom:6px; }
+.tips-modal-titulo {
+  font-family:'Playfair Display',serif; font-size:1.22rem; font-weight:700;
+  color:#3D1F2E; margin-bottom:3px;
+}
+.tips-modal-sub { font-size:.92rem; color:#9A8A84; line-height:1.5; }
+
+.tips-slides-wrap { overflow:hidden; height:160px; margin-bottom:14px; position:relative; }
+.tips-slides { display:flex; height:100%; transition:transform .4s cubic-bezier(.4,0,.2,1); }
+.tips-slide {
+  flex-shrink:0; width:100%; display:flex; flex-direction:column;
+  align-items:center; text-align:center; gap:8px; padding:0 6px;
+}
+.tips-slide-icon {
+  width:52px; height:52px; border-radius:14px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; font-size:1.6rem;
+}
+.tips-slide-titulo { font-weight:600; font-size:1rem; color:#3D1F2E; }
+.tips-slide-texto  { font-size:.92rem; color:#7A6E68; line-height:1.6; }
+
+.tips-dots { display:flex; justify-content:center; gap:6px; margin-bottom:18px; }
+.tips-dot  { width:7px; height:7px; border-radius:50%; background:#EAE4DE; cursor:pointer; transition:.2s; }
+.tips-dot.activo { background:#6D2E46; transform:scale(1.3); }
+
+.tips-btn-ok {
+  width:100%; padding:11px; border:none; border-radius:30px;
+  background:linear-gradient(135deg,#6D2E46,#A0455F); color:white;
+  font-size:.91rem; font-family:'DM Sans',sans-serif; font-weight:500;
+  cursor:pointer; transition:opacity .2s,transform .15s;
+}
+.tips-btn-ok:hover { opacity:.88; transform:translateY(-1px); }
+
+/* Widget colapsado en esquina */
+.tips-widget {
+  position:fixed; top:78px; right:18px; z-index:100;
+  display:none; align-items:center; gap:5px;
+  background:white; border:1px solid #EAE4DE; border-radius:30px;
+  padding:7px 13px; cursor:pointer;
+  box-shadow:0 4px 18px rgba(109,46,70,.18);
+  font-family:'DM Sans',sans-serif; font-size:.80rem;
+  color:#6D2E46; font-weight:500; letter-spacing:.02em;
+  transition:box-shadow .15s,transform .15s;
+  animation:widgetSlideIn .35s cubic-bezier(.34,1.45,.64,1);
+}
+.tips-widget:hover { box-shadow:0 6px 22px rgba(109,46,70,.24); transform:translateY(-1px); }
+@keyframes widgetSlideIn {
+  from{transform:translateX(70px);opacity:0}
+  to  {transform:translateX(0);   opacity:1}
+}
+.recomendadas { padding:0 0 28px; }
+.rec-titulo { font-size:1.05rem; font-weight:600; margin-bottom:16px; color:#3D1F2E; display:flex; align-items:center; gap:8px; font-family:'DM Sans',sans-serif; }
+.rec-galeria { display:grid; grid-template-columns:repeat(auto-fill,148px); gap:14px; }
+.rec-card { position:relative; cursor:default; }
+.rec-card img { width:148px; height:148px; object-fit:contain; border-radius:10px; border:2px solid transparent; display:block; transition:.2s; background:#FAF7F5; max-width:none; margin:0; }
+.rec-card.ideal img { border-color:#1D9E75; }
+.rec-card.ok img { border-color:#ddd; }
+.badge { position:absolute; top:7px; left:7px; font-size:11px; font-weight:600; padding:3px 9px; border-radius:10px; color:white; font-family:'DM Sans',sans-serif; }
+.badge.ideal { background:#1D9E75; }
+.badge.ok { background:#aaa; }
+
+/* ── Panel de medidas manuales ── */
+.medidas-card {
+    background:white; border-radius:16px; border:1.5px dashed #D4A0B0;
+    padding:22px 20px; flex:0 0 270px; display:flex; flex-direction:column;
+    align-items:center; gap:10px; text-align:center;
+}
+.medidas-form { width:100%; display:flex; flex-direction:column; gap:7px; margin:4px 0; }
+.medida-fila { display:flex; align-items:center; gap:8px; }
+.medida-dot { display:inline-block; width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.medida-fila label {
+    flex:0 0 90px; text-align:right; font-size:.9rem; color:#7A6E68;
+    font-weight:500; text-transform:none; letter-spacing:0; margin:0;
+}
+.medida-fila input[type="number"],
+.medida-fila select {
+    flex:1; min-width:0; padding:7px 10px;
+    border:1.5px solid #EAE4DE; border-radius:8px;
+    font-size:.93rem; font-family:'DM Sans',sans-serif;
+    color:#1C1410; outline:none; transition:border-color .15s;
+}
+.medida-fila input[type="number"]:focus,
+.medida-fila select:focus { border-color:#6D2E46; }
+
+/* Divisor vertical "o" entre las dos tarjetas */
+.divisor-o {
+    align-self:center; color:#B0A0A8; font-size:.88rem; font-weight:600;
+    display:flex; flex-direction:column; align-items:center; gap:0; padding:0 6px;
+}
+.divisor-o::before, .divisor-o::after {
+    content:''; width:1px; height:55px; background:#EAE4DE; display:block;
+}
+</style>
+</head>
+
+<body>
+<header>
+    <div class="cuerpo-header">
+        <h1>Tipo de Cuerpo</h1>
+        <button onclick="window.location.href='/'">← Volver</button>
+    </div>
+</header>
+
+<p class="instrucciones">
+    Descubre tu tipo de cuerpo: sube una fotografía de frente o ingresa tus medidas directamente.
+    El sistema determinará tu silueta y te dará consejos de estilo personalizados.
+</p>
+
+<div class="upload-zona">
+
+    <!-- Card de carga por foto -->
+    <div class="upload-card">
+        <div><i data-lucide="user" width="44" height="44" stroke-width="1.5"></i></div>
+        <div style="font-size:0.94rem;color:#888">Foto de cuerpo completo, de frente</div>
+        <input type="file" id="imagenCuerpo" accept="image/*" onchange="previsualizarCuerpo()">
+        <img id="prevCuerpo" alt="Vista previa">
+        <button class="btn-analizar" onclick="analizarCuerpo()">Analizar foto</button>
+    </div>
+
+    <!-- Divisor -->
+    <div class="divisor-o"><span>o</span></div>
+
+    <!-- Card de medidas manuales -->
+    <div class="medidas-card">
+        <div><i data-lucide="ruler" width="36" height="36" stroke-width="1.5"></i></div>
+        <div style="font-size:0.9rem;color:#888;line-height:1.45">
+            Ingresa tus medidas<br>en centímetros o pulgadas
+        </div>
+        <div class="medidas-form">
+            <div class="medida-fila">
+                <span class="medida-dot" style="background:#5DCAA5"></span>
+                <label for="mBusto">Busto</label>
+                <input type="number" id="mBusto" placeholder="90" min="40" max="200" step="0.5">
+            </div>
+            <div class="medida-fila">
+                <span class="medida-dot" style="background:#A78BC0"></span>
+                <label for="mCintura">Cintura</label>
+                <input type="number" id="mCintura" placeholder="70" min="40" max="200" step="0.5">
+            </div>
+            <div class="medida-fila">
+                <span class="medida-dot" style="background:#E8C87C"></span>
+                <label for="mCaderaAlta">Cadera alta</label>
+                <input type="number" id="mCaderaAlta" placeholder="90" min="40" max="200" step="0.5">
+            </div>
+            <div class="medida-fila">
+                <span class="medida-dot" style="background:#E8A87C"></span>
+                <label for="mCadera">Cadera</label>
+                <input type="number" id="mCadera" placeholder="95" min="40" max="200" step="0.5">
+            </div>
+            <div class="medida-fila">
+                <span class="medida-dot" style="background:transparent"></span>
+                <label for="mUnidad">Unidad</label>
+                <select id="mUnidad">
+                    <option value="cm">centímetro</option>
+                    <option value="in">pulgada</option>
+                </select>
+            </div>
+        </div>
+        <button class="btn-analizar" onclick="calcularPorMedidas()">Calcular tipo</button>
+    </div>
+
+    <!-- Cargando -->
+    <div class="cargando" id="cargando">
+        <div style="margin-bottom:8px"><i data-lucide="loader" width="32" height="32" stroke-width="1.5"></i></div>
+        Analizando silueta...
+    </div>
+
+    <!-- Resultado -->
+    <div class="resultado-card" id="resultadoCard">
+
+        <!-- Imagen marcada con las zonas detectadas -->
+        <img id="imgMarcada" style="display:none;width:220px;height:auto;
+             border-radius:8px;background:#f5f5f5;margin-bottom:16px;
+             align-self:center;">
+
+        <!-- Leyenda de colores -->
+        <div id="leyenda" style="display:none;font-size:0.88rem;color:#666;
+             margin-bottom:16px;display:flex;gap:12px;flex-wrap:wrap;align-self:center;">
+            <span><span style="display:inline-block;width:12px;height:12px;
+                  border-radius:2px;background:#5DCAA5;vertical-align:middle;
+                  margin-right:4px;"></span>Hombros</span>
+            <span><span style="display:inline-block;width:12px;height:12px;
+                  border-radius:2px;background:#A78BC0;vertical-align:middle;
+                  margin-right:4px;"></span>Cintura</span>
+            <span><span style="display:inline-block;width:12px;height:12px;
+                  border-radius:2px;background:#E8A87C;vertical-align:middle;
+                  margin-right:4px;"></span>Cadera</span>
+        </div>
+
+        <!-- Siluetas -->
+        <div class="silueta-wrap" id="siluetas">
+            <div class="silueta-item" id="sil-reloj_de_arena">
+                <i data-lucide="hourglass" class="silueta-emoji" width="26" height="26"></i>Reloj de arena
+            </div>
+            <div class="silueta-item" id="sil-triangulo_invertido">
+                <i data-lucide="triangle" class="silueta-emoji" width="26" height="26" style="transform:rotate(180deg)"></i>Triángulo inv.
+            </div>
+            <div class="silueta-item" id="sil-triangulo">
+                <i data-lucide="triangle" class="silueta-emoji" width="26" height="26"></i>Triángulo
+            </div>
+            <div class="silueta-item" id="sil-ovalo">
+                <i data-lucide="circle" class="silueta-emoji" width="26" height="26"></i>Óvalo
+            </div>
+            <div class="silueta-item" id="sil-rectangulo">
+                <i data-lucide="square" class="silueta-emoji" width="26" height="26"></i>Rectángulo
+            </div>
+        </div>
+
+        <div class="tipo-titulo" id="tipoTitulo"></div>
+        <div class="tipo-subtitulo" id="tipoSubtitulo"></div>
+
+        <!-- Barras de proporciones -->
+        <div id="barrasCuerpo"></div>
+
+        <!-- Descripción -->
+        <div class="descripcion" id="tipDescripcion"></div>
+
+        <!-- Tips de estilo -->
+        <div class="tips-titulo"><i data-lucide="sparkles" width="16" height="16"></i> Tips de estilo para tu tipo de cuerpo</div>
+        <div id="tipsTipo"></div>
+    </div>
+</div>
+
+<!-- Tips Modal -->
+<div class="tips-overlay" id="tipsOverlay">
+  <div class="tips-modal">
+    <button class="tips-close" onclick="cerrarTips()">×</button>
+    <div class="tips-modal-header">
+      <div class="tips-modal-icon"><i data-lucide="user" width="38" height="38" stroke-width="1.5"></i></div>
+      <div class="tips-modal-titulo">Tips para tu foto</div>
+      <div class="tips-modal-sub">Sigue estos consejos para obtener el mejor análisis de tu silueta</div>
+    </div>
+    <div class="tips-slides-wrap">
+      <div class="tips-slides" id="tipsSlides"></div>
+    </div>
+    <div class="tips-dots" id="tipsDots"></div>
+    <button class="tips-btn-ok" onclick="cerrarTips()">Entendido ✓</button>
+  </div>
+</div>
+
+<!-- Widget colapsado -->
+<div class="tips-widget" id="tipsWidget" onclick="abrirTips()">
+  <i data-lucide="user" width="16" height="16"></i>
+  <span>Tips para la foto</span>
+</div>
+
+<script>
+const INFO = {
+    reloj_de_arena: {
+        titulo: "Reloj de Arena",
+        subtitulo: "Busto y cadera equilibrados, cintura bien definida",
+        descripcion: "Tu cuerpo tiene proporciones equilibradas entre busto y cadera con una cintura marcada. Es uno de los tipos más versátiles para la moda.",
+        tips: [
+            "Aprovecha la cintura marcada con prendas que la definan",
+            "Los vestidos entallados y los jeans de tiro alto te favorecen",
+            "Evita prendas muy holgadas que oculten tu figura",
+            "Los cinturones son tus mejores aliados"
+        ]
+    },
+    triangulo_invertido: {
+        titulo: "Triángulo Invertido",
+        subtitulo: "Parte superior más ancha que la cadera",
+        descripcion: "Tu busto es más ancho que tu cadera. El objetivo de estilo es equilibrar las proporciones añadiendo volumen en la parte inferior.",
+        tips: [
+            "Pantalones con bolsillos laterales o pliegues equilibran la figura",
+            "Faldas con vuelo añaden volumen en la cadera",
+            "Evita hombros acolchados o tops con volumen en la parte superior",
+            "Los colores oscuros arriba y claros abajo equilibran la silueta"
+        ]
+    },
+    triangulo: {
+        titulo: "Triángulo",
+        subtitulo: "Cadera más ancha que el busto",
+        descripcion: "Tu cadera es más ancha que tu busto. El objetivo es añadir amplitud en la parte superior para equilibrar la silueta.",
+        tips: [
+            "Tops con escotes en V amplían los hombros visualmente",
+            "Estampados y colores llamativos en la parte superior",
+            "Pantalones de corte recto equilibran las caderas",
+            "Evita bolsillos grandes o estampados en la zona de las caderas"
+        ]
+    },
+    ovalo: {
+        titulo: "Óvalo",
+        subtitulo: "Cintura más ancha, hombros y cadera similares",
+        descripcion: "La anchura se concentra en la zona media del cuerpo. El objetivo es alargar y estilizar la silueta creando líneas verticales.",
+        tips: [
+            "Las líneas verticales y los monocolores alargan la figura",
+            "Prendas con escote en V estilizan el cuello y el torso",
+            "Evita prendas con cinturón o elástico a la altura de la cintura",
+            "Los blazers estructurados crean ilusión de talle más definido"
+        ]
+    },
+    rectangulo: {
+        titulo: "Rectángulo",
+        subtitulo: "Proporciones uniformes en todo el cuerpo",
+        descripcion: "Tus proporciones son bastante uniformes en todo el cuerpo. El objetivo es crear curvas y definir la cintura con el estilo.",
+        tips: [
+            "Los cinturones y las prendas entalladas crean curvas",
+            "Las faldas con vuelo y los tops con peplum añaden forma",
+            "Experimenta con capas y texturas para dar dimensión",
+            "Los pantalones de tiro alto con blusa entucada definen la cintura"
+        ]
+    }
+};
+
+function previsualizarCuerpo() {
+    const archivo = document.getElementById("imagenCuerpo").files[0];
+    if (!archivo) return;
+    const prev = document.getElementById("prevCuerpo");
+    prev.src = URL.createObjectURL(archivo);
+    prev.style.display = "block";
+}
+
+const RAZONES = {
+    reloj_de_arena:      { ideal: "perfecto para tu figura",  ok: "también te favorece" },
+    triangulo:           { ideal: "equilibra tu silueta",     ok: "funciona bien" },
+    triangulo_invertido: { ideal: "añade volumen abajo",      ok: "funciona bien" },
+    ovalo:               { ideal: "estiliza tu figura",       ok: "funciona bien" },
+    rectangulo:          { ideal: "define tu silueta",        ok: "funciona bien" }
+};
+
+function mostrarRecomendaciones(prendas, tipo) {
+    if (!prendas || prendas.length === 0) return;
+    const razones = RAZONES[tipo] || { ideal: "ideal", ok: "funciona" };
+    const ideales = prendas.filter(p => p.score === 2);
+    const ok      = prendas.filter(p => p.score === 1);
+    let html = '<div class="recomendadas">';
+    html += '<div class="rec-titulo"><i data-lucide="shirt" width="16" height="16"></i> Prendas de tu armario para este tipo de cuerpo</div>';
+    if (ideales.length > 0) {
+        html += '<div style="font-size:0.92rem;color:#1D9E75;font-weight:600;margin-bottom:10px">✓ Ideales</div>';
+        html += '<div class="rec-galeria">';
+        ideales.forEach(p => {
+            html += `<div class="rec-card ideal"><img src="${p.ruta}?${Date.now()}"><span class="badge ideal">${razones.ideal}</span></div>`;
+        });
+        html += '</div>';
+    }
+    if (ok.length > 0) {
+        html += '<div style="font-size:0.92rem;color:#888;font-weight:600;margin:16px 0 10px">También te favorece</div>';
+        html += '<div class="rec-galeria">';
+        ok.forEach(p => {
+            html += `<div class="rec-card ok"><img src="${p.ruta}?${Date.now()}"><span class="badge ok">${razones.ok}</span></div>`;
+        });
+        html += '</div>';
+    }
+    if (ideales.length === 0 && ok.length === 0) {
+        html += '<p style="color:#bbb;font-style:italic;font-size:0.93rem">Aún no tienes prendas en el armario correspondientes a este tipo de cuerpo.</p>';
+    }
+    html += '</div>';
+    const card = document.getElementById('resultadoCard');
+    const existing = card.querySelector('.recomendadas');
+    if (existing) existing.remove();
+    card.insertAdjacentHTML('beforeend', html);
+    lucide.createIcons();
+}
+
+function calcularPorMedidas() {
+    const busto   = parseFloat(document.getElementById("mBusto").value);
+    const cintura = parseFloat(document.getElementById("mCintura").value);
+    const c_alta  = parseFloat(document.getElementById("mCaderaAlta").value) || 0;
+    const cadera  = parseFloat(document.getElementById("mCadera").value);
+    const unidad  = document.getElementById("mUnidad").value;
+
+    if (!busto || !cintura || !cadera) {
+        alert("Por favor ingresa al menos busto, cintura y cadera."); return;
+    }
+
+    document.getElementById("resultadoCard").style.display = "none";
+    document.getElementById("cargando").style.display = "block";
+
+    const fd = new FormData();
+    fd.append("busto",       busto);
+    fd.append("cintura",     cintura);
+    fd.append("cadera_alta", c_alta);
+    fd.append("cadera",      cadera);
+    fd.append("unidad",      unidad);
+
+    fetch("/clasificar_medidas", { method: "POST", body: fd })
+    .then(r => r.json())
+    .then(data => {
+        document.getElementById("cargando").style.display = "none";
+        if (data.error) { alert("Error: " + data.error); return; }
+        mostrarResultado(data);
+    })
+    .catch(() => {
+        document.getElementById("cargando").style.display = "none";
+        alert("No se pudo conectar con el servidor.");
+    });
+}
+
+function analizarCuerpo() {
+    const archivo = document.getElementById("imagenCuerpo").files[0];
+    if (!archivo) { alert("Selecciona una imagen primero"); return; }
+
+    document.getElementById("resultadoCard").style.display = "none";
+    document.getElementById("cargando").style.display = "block";
+
+    const formData = new FormData();
+    formData.append("imagen", archivo);
+
+    fetch("/analizar_cuerpo", { method: "POST", body: formData })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("cargando").style.display = "none";
+
+        if (data.error) {
+            alert("Error: " + data.error);
+            return;
+        }
+
+        mostrarResultado(data);
+    })
+    .catch(() => {
+        document.getElementById("cargando").style.display = "none";
+        alert("No se pudo conectar con el servidor.");
+    });
+}
+
+// ── Tips Modal ────────────────────────────────────────────────────────────
+const TIPS = [
+  { ico:`<i data-lucide="ruler" width="26" height="26" stroke-width="1.5"></i>`, bg:"#F0FFF4", titulo:"Foto de cuerpo completo",
+    texto:"De la cabeza a los pies, sin cortar las extremidades." },
+  { ico:`<i data-lucide="shirt" width="26" height="26" stroke-width="1.5"></i>`, bg:"#FFF0F5", titulo:"Ropa ajustada o ceñida",
+    texto:"Mallas o ropa ceñida para que tu silueta sea bien visible." },
+  { ico:`<i data-lucide="image" width="26" height="26" stroke-width="1.5"></i>`, bg:"#F5F0FF", titulo:"Fondo claro y liso",
+    texto:"Fondo blanco o de color uniforme, sin objetos de fondo." },
+  { ico:`<i data-lucide="user" width="26" height="26" stroke-width="1.5"></i>`, bg:"#FFFBF0", titulo:"Postura natural de frente",
+    texto:"Erguida, brazos a los lados, pies juntos o ligeramente separados." },
+  { ico:`<i data-lucide="sun" width="26" height="26" stroke-width="1.5"></i>`, bg:"#FFF8E6", titulo:"Buena iluminación pareja",
+    texto:"Luz natural o ambiente. Evita sombras fuertes en un lado." },
+];
+
+let _tIdx = 0, _tTimer = null;
+
+(function iniciarTips() {
+  const slides = document.getElementById("tipsSlides");
+  const dots   = document.getElementById("tipsDots");
+  slides.innerHTML = TIPS.map(t => `
+    <div class="tips-slide">
+      <div class="tips-slide-icon" style="background:${t.bg}">${t.ico}</div>
+      <div class="tips-slide-titulo">${t.titulo}</div>
+      <div class="tips-slide-texto">${t.texto}</div>
+    </div>`).join("");
+  dots.innerHTML = TIPS.map((_,i) =>
+    `<div class="tips-dot${i===0?' activo':''}" onclick="irTip(${i})"></div>`
+  ).join("");
+  _tTimer = setInterval(avanzarTip, 2600);
+})();
+
+function irTip(i) {
+  _tIdx = i;
+  document.getElementById("tipsSlides").style.transform = `translateX(-${i*100}%)`;
+  document.querySelectorAll(".tips-dot").forEach((d,j) => d.classList.toggle("activo", j===i));
+  clearInterval(_tTimer);
+  _tTimer = setInterval(avanzarTip, 2600);
+}
+function avanzarTip() { irTip((_tIdx+1) % TIPS.length); }
+
+function cerrarTips() {
+  const ov = document.getElementById("tipsOverlay");
+  const wg = document.getElementById("tipsWidget");
+  ov.classList.add("saliendo");
+  setTimeout(() => { ov.style.display="none"; wg.style.display="flex"; }, 230);
+  clearInterval(_tTimer);
+}
+function abrirTips() {
+  const ov = document.getElementById("tipsOverlay");
+  const wg = document.getElementById("tipsWidget");
+  ov.style.display = "flex";
+  ov.classList.remove("saliendo");
+  wg.style.display = "none";
+  irTip(0);
+}
+
+function mostrarResultado(data) {
+    const tipo = data.tipo;
+    const info = INFO[tipo] || { titulo: tipo, subtitulo: "", descripcion: "", tips: [] };
+
+    // Imagen marcada (solo análisis de foto)
+    const imgM    = document.getElementById("imgMarcada");
+    const leyenda = document.getElementById("leyenda");
+    if (data.marcada) {
+        imgM.style.display = "none";
+        imgM.onload  = () => { imgM.style.display = "block"; leyenda.style.display = "flex"; };
+        imgM.onerror = () => { imgM.style.display = "block"; leyenda.style.display = "flex"; };
+        const urlBase = data.marcada.split("?")[0];
+        imgM.src = urlBase + "?t=" + Date.now() + Math.random();
+    } else {
+        imgM.style.display    = "none";
+        leyenda.style.display = "none";
+    }
+
+    // Silueta activa
+    document.querySelectorAll(".silueta-item").forEach(el => el.classList.remove("activo"));
+    const silEl = document.getElementById("sil-" + tipo);
+    if (silEl) silEl.classList.add("activo");
+
+    document.getElementById("tipoTitulo").textContent    = info.titulo;
+    document.getElementById("tipoSubtitulo").textContent = info.subtitulo;
+    document.getElementById("tipDescripcion").textContent = info.descripcion;
+
+    // Barras — distintas según el método
+    let zonas;
+    if (data.metodo === "medidas_manuales") {
+        zonas = [
+            { label: "Busto",       val: data.busto,   color: "#5DCAA5" },
+            { label: "Cintura",     val: data.cintura,  color: "#A78BC0" },
+            ...(data.c_alta ? [{ label: "Cadera alta", val: data.c_alta, color: "#E8C87C" }] : []),
+            { label: "Cadera",      val: data.cadera,   color: "#E8A87C" },
+        ];
+    } else {
+        zonas = [
+            { label: "Hombros", val: data.hombros, color: "#5DCAA5" },
+            { label: "Cintura", val: data.cintura,  color: "#A78BC0" },
+            { label: "Cadera",  val: data.cadera,   color: "#E8A87C" },
+        ];
+    }
+    const maxZ = Math.max(...zonas.map(z => z.val));
+    const esMedidas = data.metodo === "medidas_manuales";
+    document.getElementById("barrasCuerpo").innerHTML = zonas.map(z => {
+        const pct     = Math.round((z.val / maxZ) * 100);
+        const derecha = esMedidas ? `${z.val} cm` : `${pct}%`;
+        return `<div class="barra-wrap">
+            <div class="barra-label"><span>${z.label}</span><span>${derecha}</span></div>
+            <div class="barra-track">
+                <div class="barra-fill" style="width:${pct}%;background:${z.color}"></div>
+            </div>
+        </div>`;
+    }).join("");
+
+    document.getElementById("tipsTipo").innerHTML =
+        info.tips.map(t => `<div class="tip">• ${t}</div>`).join("");
+
+    document.getElementById("resultadoCard").style.display = "flex";
+    document.getElementById("resultadoCard").style.flexDirection = "column";
+
+    fetch(`/recomendar/${data.tipo}`)
+        .then(res => res.json())
+        .then(prendas => mostrarRecomendaciones(prendas, data.tipo));
+}
+</script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>lucide.createIcons();</script>
+</body>
+</html>

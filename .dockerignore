@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.git/
+
+# Binarios Windows — en Docker se compila procesar desde fuente
+*.exe
+
+# Archivos temporales generados en tiempo de ejecución
+static/entrada.bmp
+static/procesada.bmp
+static/colorimetria_temp.bmp
+static/cuerpo_temp.bmp
+static/cuerpo_marcado.bmp
+static/foto_temp.bmp

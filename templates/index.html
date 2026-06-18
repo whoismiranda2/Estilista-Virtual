@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estilista Virtual</title>
+<link rel="stylesheet" href="/static/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+.modal-meta {
+  display:none; position:fixed; inset:0;
+  background:rgba(28,20,16,.65); align-items:center; justify-content:center;
+  z-index:300; backdrop-filter:blur(4px);
+}
+.modal-meta.visible { display:flex; }
+.meta-card {
+  background:white; border-radius:16px; width:92%; max-width:400px;
+  box-shadow:0 20px 60px rgba(0,0,0,.25); border:1px solid #EAE4DE;
+  overflow:hidden; max-height:90vh; overflow-y:auto;
+}
+.meta-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 20px; border-bottom:1px solid #EAE4DE;
+  position:sticky; top:0; background:white; z-index:2;
+}
+.meta-header h3 {
+  font-family:'Playfair Display',serif; font-size:1.15rem;
+  font-weight:700; color:#3D1F2E;
+}
+.meta-close {
+  width:28px; height:28px; border-radius:50%; border:none;
+  background:#F5F0EC; cursor:pointer; font-size:14px; color:#7A6E68;
+  display:flex; align-items:center; justify-content:center;
+  margin:0; padding:0;
+}
+.meta-foto {
+  display:flex; justify-content:center; padding:16px; background:#FAF7F5;
+}
+.meta-foto img {
+  width:110px; height:130px; object-fit:contain; border-radius:10px;
+  border:1px solid #EAE4DE; background:white; max-width:none; margin:0;
+}
+.meta-campos { padding:4px 0 0; }
+.meta-campo {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 20px; border-bottom:0.5px solid #F0EAE5; gap:12px;
+}
+.meta-campo:last-of-type { border-bottom:none; }
+.meta-lbl {
+  font-size:.92rem; color:#7A6E68; flex-shrink:0;
+  font-family:'DM Sans',sans-serif; font-weight:500;
+}
+.meta-select {
+  font-family:'DM Sans',sans-serif; font-size:.92rem; color:#1C1410;
+  border:1px solid #EAE4DE; border-radius:8px; padding:7px 12px;
+  background:#FAF7F5; cursor:pointer; outline:none;
+}
+.meta-select:focus { border-color:#6D2E46; }
+.tags-wrap {
+  display:flex; gap:6px; flex-wrap:wrap;
+  justify-content:flex-end; flex:1;
+}
+.meta-tag {
+  padding:5px 13px; border-radius:20px; font-size:13px; cursor:pointer;
+  border:1.5px solid #EAE4DE; color:#7A6E68; background:white;
+  transition:.12s; user-select:none; font-family:'DM Sans',sans-serif;
+}
+.meta-tag.activo { background:#6D2E46; color:white; border-color:#6D2E46; }
+.color-preview {
+  width:22px; height:22px; border-radius:50%;
+  border:1.5px solid rgba(0,0,0,.1); flex-shrink:0;
+}
+.color-picker-wrap { display:flex; align-items:center; gap:8px; }
+.color-picker-input {
+  width:28px; height:28px; border-radius:6px;
+  border:1px solid #EAE4DE; cursor:pointer; padding:0; background:none;
+}
+.estrellas { display:flex; gap:3px; }
+.estrella {
+  font-size:24px; cursor:pointer; color:#EAE4DE;
+  transition:.1s; line-height:1;
+}
+.estrella.llena { color:#DAA520; }
+.estrella:hover { transform:scale(1.15); }
+.meta-footer { padding:16px 20px; border-top:1px solid #EAE4DE; }
+.btn-meta-guardar {
+  width:100%; padding:14px; border:none; border-radius:30px;
+  background:linear-gradient(135deg,#6D2E46,#A0455F); color:white;
+  font-family:'DM Sans',sans-serif; font-size:.96rem; font-weight:500;
+  cursor:pointer; transition:opacity .2s, transform .15s; margin:0;
+  letter-spacing:.03em;
+}
+.btn-meta-guardar:hover { transform:translateY(-1px); }
+.btn-meta-guardar:hover { opacity:.88; }
+
+.color-circulo {
+  width:26px; height:26px; border-radius:50%;
+  border:2px solid rgba(0,0,0,.1); cursor:default;
+  flex-shrink:0; position:relative; transition:.15s;
+}
+.color-circulo .circulo-x {
+  display:none; position:absolute; inset:0; align-items:center;
+  justify-content:center; font-size:11px; color:rgba(255,255,255,.9);
+  font-weight:700; background:rgba(0,0,0,.25); border-radius:50%;
+  cursor:pointer;
+}
+.color-circulo:hover .circulo-x { display:flex; }
+.badge-multicolor {
+  padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600;
+  background:linear-gradient(90deg,#FF6B6B,#FFD93D,#6BCB77,#4D96FF);
+  color:white; text-shadow:0 1px 2px rgba(0,0,0,.3);
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="header-content">
+    <h1>Estilista <span>Virtual</span></h1>
+    <div>
+      <button onclick="irArmario()"><i data-lucide="archive" width="16" height="16"></i> Mi Armario</button>
+      <button onclick="window.location.href='/cuerpo'"><i data-lucide="user" width="16" height="16"></i> Tipo de Cuerpo</button>
+      <button onclick="window.location.href='/colorimetria'"><i data-lucide="palette" width="16" height="16"></i> Colorimetría</button>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="panel upload">
+    <h2>Subir prenda</h2>
+    <input type="file" id="imagen" accept="image/*">
+    <button onclick="subir()">Cargar imagen</button>
+  </div>
+
+  <div class="panel">
+    <h2>Prenda Original</h2>
+    <img id="original" alt="Imagen original">
+    <br>
+    <button onclick="abrirMeta('original')">＋ Agregar al Armario</button>
+  </div>
+
+  <div class="panel">
+    <h2>Prenda Modificada</h2>
+    <img id="procesada" alt="Imagen procesada">
+    <br>
+    <button onclick="abrirMeta('procesada')">＋ Agregar al Armario</button>
+  </div>
+
+  <div class="panel">
+    <h2>Histograma de Color</h2>
+    <button onclick="procesar('hist')">Generar histograma</button>
+    <canvas id="grafica"></canvas>
+    <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:4px">
+      <button class="btn-canal" onclick="mostrar('r')">R</button>
+      <button class="btn-canal" onclick="mostrar('g')">G</button>
+      <button class="btn-canal" onclick="mostrar('b')">B</button>
+      <button class="btn-canal" onclick="mostrar('gray')">Gris</button>
+    </div>
+    <h3>Ajuste de color</h3>
+    <label>Rojo</label>
+    <input type="range" id="r" min="0" max="255" value="100">
+    <label>Verde</label>
+    <input type="range" id="g" min="0" max="255" value="100">
+    <label>Azul</label>
+    <input type="range" id="b" min="0" max="255" value="100">
+    <button onclick="aplicarColor()">Aplicar cambios</button>
+  </div>
+
+</div>
+
+<!-- Modal de metadatos -->
+<div class="modal-meta" id="modalMeta" onclick="cerrarMetaSiFondo(event)">
+  <div class="meta-card">
+
+    <div class="meta-header">
+      <h3>Guardar prenda</h3>
+      <button class="meta-close" onclick="cerrarMeta()">✕</button>
+    </div>
+
+    <div class="meta-foto">
+      <img id="metaFotoPreview" alt="Prenda">
+    </div>
+
+    <div class="meta-campos">
+
+      <div class="meta-campo">
+        <span class="meta-lbl">Categoría</span>
+        <select class="meta-select" id="metaCat">
+          <option value="top">Top / Camiseta</option>
+          <option value="pantalon">Pantalón</option>
+          <option value="vestido">Vestido</option>
+          <option value="falda">Falda</option>
+          <option value="short">Short</option>
+          <option value="otro">Otro</option>
+        </select>
+      </div>
+
+      <div class="meta-campo" style="flex-direction:column;align-items:flex-start;gap:10px">
+        <span class="meta-lbl">Colores detectados</span>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <div id="coloresDetectados" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"></div>
+          <button id="btnAddColor" onclick="mostrarPickerExtra()"
+            style="width:28px;height:28px;border-radius:50%;border:1.5px dashed #C0B4AE;
+                   background:white;cursor:pointer;font-size:16px;color:#9A8A84;
+                   display:flex;align-items:center;justify-content:center;
+                   margin:0;padding:0;transition:.15px"
+            title="Añadir color">＋</button>
+        </div>
+        <div id="pickerExtra" style="display:none;align-items:center;gap:8px">
+          <input type="color" id="metaColorExtra" value="#888888"
+                 oninput="previewExtra(this.value)"
+                 style="width:36px;height:36px;border-radius:8px;
+                        border:1px solid #EAE4DE;cursor:pointer;padding:2px">
+          <span id="extraNombre" style="font-size:.82rem;color:#7A6E68">Elige un color</span>
+          <button onclick="confirmarColorExtra()"
+            style="padding:4px 12px;font-size:.78rem;border-radius:20px;margin:0">
+            Añadir
+          </button>
+          <button onclick="cancelarPickerExtra()"
+            style="padding:4px 12px;font-size:.78rem;border-radius:20px;
+                   background:#F5F0EC;color:#7A6E68;border:none;margin:0">
+            Cancelar
+          </button>
+        </div>
+      </div>
+
+      <div class="meta-campo" style="flex-direction:column;align-items:flex-start;gap:8px">
+        <span class="meta-lbl">Estación</span>
+        <div class="tags-wrap" style="justify-content:flex-start">
+          <span class="meta-tag" data-group="estacion" data-val="primavera"
+                onclick="toggleTag(this)"><i data-lucide="flower-2" width="14" height="14"></i> Primavera</span>
+          <span class="meta-tag" data-group="estacion" data-val="verano"
+                onclick="toggleTag(this)"><i data-lucide="sun" width="14" height="14"></i> Verano</span>
+          <span class="meta-tag" data-group="estacion" data-val="otono"
+                onclick="toggleTag(this)"><i data-lucide="leaf" width="14" height="14"></i> Otoño</span>
+          <span class="meta-tag" data-group="estacion" data-val="invierno"
+                onclick="toggleTag(this)"><i data-lucide="snowflake" width="14" height="14"></i> Invierno</span>
+        </div>
+      </div>
+
+      <div class="meta-campo" style="flex-direction:column;align-items:flex-start;gap:8px">
+        <span class="meta-lbl">Ocasión</span>
+        <div class="tags-wrap" style="justify-content:flex-start">
+          <span class="meta-tag" data-group="ocasion" data-val="trabajo"
+                onclick="toggleTag(this)"><i data-lucide="briefcase" width="14" height="14"></i> Trabajo</span>
+          <span class="meta-tag" data-group="ocasion" data-val="casual"
+                onclick="toggleTag(this)"><i data-lucide="sun" width="14" height="14"></i> Casual</span>
+          <span class="meta-tag" data-group="ocasion" data-val="cita"
+                onclick="toggleTag(this)"><i data-lucide="heart" width="14" height="14"></i> Cita</span>
+          <span class="meta-tag" data-group="ocasion" data-val="formal"
+                onclick="toggleTag(this)"><i data-lucide="sparkles" width="14" height="14"></i> Formal</span>
+          <span class="meta-tag" data-group="ocasion" data-val="deporte"
+                onclick="toggleTag(this)"><i data-lucide="zap" width="14" height="14"></i> Deporte</span>
+          <span class="meta-tag" data-group="ocasion" data-val="viaje"
+                onclick="toggleTag(this)"><i data-lucide="plane" width="14" height="14"></i> Viaje</span>
+        </div>
+      </div>
+
+      <div class="meta-campo">
+        <span class="meta-lbl">Material</span>
+        <select class="meta-select" id="metaMaterial">
+          <option value="">Sin especificar</option>
+          <option value="algodon">Algodón</option>
+          <option value="denim">Denim</option>
+          <option value="poliester">Poliéster</option>
+          <option value="lana">Lana</option>
+          <option value="seda">Seda</option>
+          <option value="lino">Lino</option>
+          <option value="cuero">Cuero</option>
+          <option value="sintetico">Sintético</option>
+          <option value="otro">Otro</option>
+        </select>
+      </div>
+
+      <div class="meta-campo">
+        <span class="meta-lbl">Mi valoración</span>
+        <div class="estrellas" id="metaEstrellas">
+          <span class="estrella" onclick="valorar(1)">★</span>
+          <span class="estrella" onclick="valorar(2)">★</span>
+          <span class="estrella" onclick="valorar(3)">★</span>
+          <span class="estrella" onclick="valorar(4)">★</span>
+          <span class="estrella" onclick="valorar(5)">★</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="meta-footer">
+      <button class="btn-meta-guardar" onclick="confirmarGuardar()">
+        Guardar en el armario
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>lucide.createIcons();</script>
+</body>
+</html>
