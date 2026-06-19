@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi Perfil — Estilista Virtual</title>
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+<link rel="stylesheet" href="/static/style.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap');
+
+.perfil-wrap { max-width:680px; margin:0 auto; padding:32px 24px 60px; }
+.perfil-wrap h2 {
+  font-family:'Playfair Display',serif; color:#3D1F2E;
+  font-size:1.65rem; font-weight:700; margin-bottom:28px;
+}
+.perfil-card {
+  background:white; border-radius:16px; padding:24px 28px;
+  border:1px solid #EAE4DE; box-shadow:0 4px 20px rgba(0,0,0,.06);
+  margin-bottom:18px;
+}
+.perfil-card h3 {
+  font-family:'Playfair Display',serif; color:#3D1F2E;
+  font-size:1.1rem; font-weight:600; margin-bottom:14px;
+  padding-bottom:10px; border-bottom:1px solid #F0EAE5;
+  display:flex; align-items:center; gap:8px;
+}
+.perfil-row { display:flex; gap:8px; margin-bottom:6px; align-items:baseline; }
+.perfil-lbl { font-size:.85rem; color:#9A8A84; font-family:'DM Sans',sans-serif; min-width:90px; }
+.perfil-val { font-size:.95rem; color:#1C1410; font-family:'DM Sans',sans-serif; font-weight:500; }
+.tag-result {
+  display:inline-block; padding:5px 16px; border-radius:20px;
+  background:linear-gradient(135deg,#6D2E46,#A0455F); color:white;
+  font-family:'DM Sans',sans-serif; font-size:.88rem; font-weight:500;
+  margin-top:4px;
+}
+.vacio { color:#B0A8A4; font-size:.9rem; font-style:italic; font-family:'DM Sans',sans-serif; }
+.btn-perfil {
+  display:inline-block; margin-top:14px; padding:9px 22px;
+  border-radius:30px; font-family:'DM Sans',sans-serif; font-size:.88rem;
+  cursor:pointer; border:1.5px solid #6D2E46; color:#6D2E46;
+  background:white; transition:.15s; text-decoration:none;
+}
+.btn-perfil:hover { background:#6D2E46; color:white; }
+.perfil-header-sub { color:#9A8A84; font-family:'DM Sans',sans-serif; font-size:.88rem; font-weight:400; margin-left:4px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="header-content">
+    <h1>Estilista <span>Virtual</span></h1>
+    <div>
+      <button onclick="window.location.href='/'"><i data-lucide="home" width="15" height="15"></i> Inicio</button>
+      <button onclick="window.location.href='/armario'"><i data-lucide="archive" width="15" height="15"></i> Armario</button>
+      <button onclick="window.location.href='/logout'" style="background:rgba(255,255,255,.12)">
+        <i data-lucide="log-out" width="15" height="15"></i> Salir
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="perfil-wrap">
+  <h2>Mi Perfil</h2>
+
+  <!-- Info básica -->
+  <div class="perfil-card">
+    <h3><i data-lucide="user" width="17" height="17"></i> Cuenta</h3>
+    <div class="perfil-row">
+      <span class="perfil-lbl">Usuario</span>
+      <span class="perfil-val">{{ user.username }}</span>
+    </div>
+    <div class="perfil-row">
+      <span class="perfil-lbl">Correo</span>
+      <span class="perfil-val">{{ user.email }}</span>
+    </div>
+  </div>
+
+  <!-- Tipo de cuerpo -->
+  {% set cuerpo_labels = {
+    "reloj_de_arena":      "Reloj de Arena",
+    "triangulo":           "Triángulo",
+    "triangulo_invertido": "Triángulo Invertido",
+    "ovalo":               "Óvalo",
+    "rectangulo":          "Rectángulo"
+  } %}
+  <div class="perfil-card">
+    <h3>
+      <i data-lucide="user" width="17" height="17"></i> Tipo de Cuerpo
+      {% if not user.cuerpo_tipo %}<span class="perfil-header-sub">— sin analizar</span>{% endif %}
+    </h3>
+    {% if user.cuerpo_tipo %}
+      <div class="tag-result">{{ cuerpo_labels.get(user.cuerpo_tipo, user.cuerpo_tipo) }}</div>
+      <br>
+      <a href="/cuerpo" class="btn-perfil">Ver análisis completo</a>
+    {% else %}
+      <p class="vacio">Aún no has realizado el análisis de tipo de cuerpo.</p>
+      <a href="/cuerpo" class="btn-perfil">Analizar ahora</a>
+    {% endif %}
+  </div>
+
+  <!-- Colorimetría -->
+  {% set estacion_labels = {
+    "primavera": "Primavera 🌸",
+    "verano":    "Verano ☀️",
+    "otono":     "Otoño 🍂",
+    "invierno":  "Invierno ❄️"
+  } %}
+  <div class="perfil-card">
+    <h3>
+      <i data-lucide="palette" width="17" height="17"></i> Colorimetría
+      {% if not user.colorimetria_estacion %}<span class="perfil-header-sub">— sin analizar</span>{% endif %}
+    </h3>
+    {% if user.colorimetria_estacion %}
+      <div class="tag-result">{{ estacion_labels.get(user.colorimetria_estacion, user.colorimetria_estacion|title) }}</div>
+      <br>
+      <a href="/colorimetria" class="btn-perfil">Ver análisis completo</a>
+    {% else %}
+      <p class="vacio">Aún no has realizado tu análisis de colorimetría.</p>
+      <a href="/colorimetria" class="btn-perfil">Analizar ahora</a>
+    {% endif %}
+  </div>
+
+  <!-- Armario -->
+  <div class="perfil-card">
+    <h3><i data-lucide="archive" width="17" height="17"></i> Mi Armario</h3>
+    <p style="font-family:'DM Sans',sans-serif;font-size:.92rem;color:#7A6E68;margin-bottom:12px">
+      Gestiona las prendas que has guardado.
+    </p>
+    <a href="/armario" class="btn-perfil">Ir al armario</a>
+  </div>
+</div>
+
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>lucide.createIcons();</script>
+</body>
+</html>

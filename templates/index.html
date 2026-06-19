@@ -123,6 +123,8 @@
       <button onclick="irArmario()"><i data-lucide="archive" width="16" height="16"></i> Mi Armario</button>
       <button onclick="window.location.href='/cuerpo'"><i data-lucide="user" width="16" height="16"></i> Tipo de Cuerpo</button>
       <button onclick="window.location.href='/colorimetria'"><i data-lucide="palette" width="16" height="16"></i> Colorimetría</button>
+      <button onclick="window.location.href='/perfil'" title="{{ current_user.username }}"><i data-lucide="circle-user" width="16" height="16"></i> {{ current_user.username }}</button>
+      <button onclick="window.location.href='/logout'" style="background:rgba(255,255,255,.12)"><i data-lucide="log-out" width="16" height="16"></i> Salir</button>
     </div>
   </div>
 </header>

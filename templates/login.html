@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iniciar sesión — Estilista Virtual</title>
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+<link rel="stylesheet" href="/static/style.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500&display=swap');
+.auth-wrap {
+  display:flex; align-items:center; justify-content:center;
+  min-height:calc(100vh - 72px); padding:24px 16px;
+}
+.auth-card {
+  background:white; border-radius:16px; padding:36px 32px;
+  max-width:380px; width:100%;
+  box-shadow:0 12px 40px rgba(0,0,0,.10); border:1px solid #EAE4DE;
+}
+.auth-card h2 {
+  font-family:'Playfair Display',serif; color:#3D1F2E;
+  font-size:1.55rem; font-weight:700; margin-bottom:24px;
+}
+.auth-error {
+  background:#FDECEA; color:#B03020; padding:10px 14px;
+  border-radius:8px; margin-bottom:18px;
+  font-family:'DM Sans',sans-serif; font-size:.88rem;
+}
+.field { margin-bottom:16px; }
+.field label {
+  display:block; font-size:.86rem; color:#7A6E68; margin-bottom:5px;
+  font-family:'DM Sans',sans-serif; font-weight:500;
+}
+.field input {
+  width:100%; padding:10px 14px; border:1px solid #DDD6CF;
+  border-radius:8px; font-family:'DM Sans',sans-serif; font-size:.92rem;
+  box-sizing:border-box; outline:none; color:#1C1410;
+  transition:border-color .15s;
+}
+.field input:focus { border-color:#6D2E46; }
+.btn-auth {
+  width:100%; padding:13px; border:none; border-radius:30px;
+  background:linear-gradient(135deg,#6D2E46,#A0455F); color:white;
+  font-family:'DM Sans',sans-serif; font-size:.96rem; font-weight:500;
+  cursor:pointer; margin:8px 0 0; transition:opacity .2s;
+}
+.btn-auth:hover { opacity:.88; }
+.auth-link {
+  text-align:center; margin-top:18px;
+  font-family:'DM Sans',sans-serif; font-size:.88rem; color:#9A8A84;
+}
+.auth-link a { color:#6D2E46; font-weight:500; text-decoration:none; }
+.auth-link a:hover { text-decoration:underline; }
+</style>
+</head>
+<body>
+<header>
+  <div class="header-content">
+    <h1>Estilista <span>Virtual</span></h1>
+  </div>
+</header>
+
+<div class="auth-wrap">
+  <div class="auth-card">
+    <h2>Iniciar sesión</h2>
+
+    {% with msgs = get_flashed_messages() %}
+    {% if msgs %}
+    <div class="auth-error">{{ msgs[0] }}</div>
+    {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+      <div class="field">
+        <label>Usuario</label>
+        <input name="username" type="text" autocomplete="username" required>
+      </div>
+      <div class="field" style="margin-bottom:22px">
+        <label>Contraseña</label>
+        <input name="password" type="password" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="btn-auth">Entrar</button>
+    </form>
+
+    <p class="auth-link">
+      ¿No tienes cuenta? <a href="/registro">Regístrate</a>
+    </p>
+  </div>
+</div>
+</body>
+</html>

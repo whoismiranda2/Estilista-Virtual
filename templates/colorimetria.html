@@ -597,7 +597,12 @@
 <header>
   <div class="col-header">
     <h1>Colorimetría</h1>
-    <button onclick="window.location.href='/'">← Volver</button>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span style="color:rgba(255,255,255,.7);font-family:'DM Sans',sans-serif;font-size:.85rem">{{ current_user.username }}</span>
+      <button onclick="window.location.href='/'">← Volver</button>
+      <button onclick="window.location.href='/perfil'"><i data-lucide="circle-user" width="15" height="15"></i> Perfil</button>
+      <button onclick="window.location.href='/logout'" style="background:rgba(255,255,255,.12)"><i data-lucide="log-out" width="15" height="15"></i> Salir</button>
+    </div>
   </div>
 </header>
 
